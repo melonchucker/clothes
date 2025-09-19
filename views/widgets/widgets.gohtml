@@ -1,0 +1,11 @@
+{{ define "card" }}
+<div class="card">
+    <a href="{{ .brand }}/{{ .name }}">
+        <img loading="lazy" src='/static/images/{{ index (index .pictures 0) "url" }}' alt="Item Image" />
+    </a>
+    <div>
+        <div class="bold uppercase">{{ .brand }}</div>
+        <div class="bold uppercase">{{ .name }}</div>
+    </div>
+</div>
+{{ end }}

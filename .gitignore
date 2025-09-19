@@ -1,0 +1,22 @@
+# Binaries for the current project
+*.exe
+*.bin
+*.out
+
+# Compiled binaries for other platforms (e.g., cross-compilation)
+bin/
+pkg/
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+*.sublime-workspace
+*.swp
+*.bak
+
+# Go module cache and build artifacts
+go.mod
+go.sum
+vendor/
+
+*.jpg

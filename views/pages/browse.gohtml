@@ -1,0 +1,11 @@
+
+{{ define "content" }}
+<div class="browse">
+    <span>Browse {{ .Title }}</span>
+    <div class="grid">
+        {{ range .Data }}
+        {{ template "card" .}}
+        {{ end }}
+    </div>
+</div>
+{{ end }}
