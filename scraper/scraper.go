@@ -69,18 +69,26 @@ func scrapeFashionPass() {
 		j := FashionPassResponse{}
 		json.Unmarshal(r.Body, &j)
 
+		r.Save("./test.json")
+
 		vendors := []string{}
 		for _, v := range j.ProductList.VendorList {
 			vendors = append(vendors, v)
 		}
-		models.GetDb().Exec(context.Background(), "INSERT INTO brand (name) SELECT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", vendors)
+		_, err := models.GetDb().Exec(context.Background(), "INSERT INTO brand (name) SELECT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", vendors)
+		if err != nil {
+			slog.Error("Failed to insert vendors", "error", err)
+		}
 
 		for _, item := range j.ProductList.ResultItems {
 			imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s", item.ThumbnailImage)
 
-			models.GetDb().Exec(context.Background(), `
-			SELECT add_base_item($1, $2, $3, $4, $5);
-			`, item.Title, "", item.Vendor, item.Vendor, []string{item.ThumbnailImage})
+			_, err := models.GetDb().Exec(context.Background(), `
+			SELECT add_base_item($1, $2, $3, $4);
+			`, item.Title, "", item.Vendor, item.ThumbnailImage)
+			if err != nil {
+				slog.Error("Failed to insert item", "error", err, "item", item)
+			}
 			imgC.Visit(imgUrl)
 		}
 	})

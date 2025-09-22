@@ -34,6 +34,14 @@ func RenderPage(page string, w http.ResponseWriter, pageData PageData) {
 		return
 	}
 
+	funcs := template.FuncMap{
+		"repeat": func(n int) []struct{} {
+			return make([]struct{}, n)
+		},
+	}
+
+	tmpl = tmpl.Funcs(funcs)
+
 	if err := tmpl.Execute(w, pageData); err != nil {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}

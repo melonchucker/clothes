@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"os"
 	"slices"
+	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,6 +18,26 @@ var pool *pgxpool.Pool
 
 func GetDb() *pgxpool.Pool {
 	return pool
+}
+
+func ApiQuery(ctx context.Context, apiFunction string, args ...any) (any, error) {
+	argsStrings := make([]string, len(args))
+	for ndx := range args {
+		argsStrings[ndx] = fmt.Sprintf("$%d", ndx+1)
+	}
+	argsString := strings.Join(argsStrings, ", ")
+
+	rows, err := pool.Query(ctx, fmt.Sprintf("SELECT * FROM api.%s(%s) AS result", apiFunction, argsString), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	res, err := pgx.CollectRows(rows, pgx.RowToMap)
+	if err != nil {
+		return nil, err
+	}
+	return res[0]["result"], nil
 }
 
 func init() {
