@@ -1,6 +1,10 @@
 package widgets
 
-import "math"
+import (
+	"fmt"
+	"math"
+	"net/url"
+)
 
 type Card struct {
 	Title    string
@@ -8,6 +12,45 @@ type Card struct {
 	ImageURL string
 	ImageAlt string
 	Href     string
+}
+
+type Pageination struct {
+	CurrentPage int
+	TotalPages  int
+	BaseURL     url.URL
+}
+
+type pageinationData struct {
+	Page    int
+	PageUrl string
+}
+
+func (p Pageination) PagesAvailable() []pageinationData {
+	startPage := p.CurrentPage - 2
+	if startPage < 1 {
+		startPage = 1
+	}
+
+	endPage := startPage + 4
+	if endPage > p.TotalPages {
+		endPage = p.TotalPages
+	}
+
+	pages := []pageinationData{}
+	for i := startPage; i <= endPage; i++ {
+
+		u := p.BaseURL
+		q := u.Query()
+		q.Set("page", fmt.Sprintf("%d", i))
+		u.RawQuery = q.Encode()
+		page := pageinationData{
+			Page:    i,
+			PageUrl: u.String(),
+		}
+		pages = append(pages, page)
+	}
+
+	return pages
 }
 
 type Rating struct {

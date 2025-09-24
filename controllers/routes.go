@@ -6,8 +6,6 @@ import (
 	"clothes/views/widgets"
 	"fmt"
 	"net/http"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func GetServerMux() http.Handler {
@@ -20,52 +18,59 @@ func GetServerMux() http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {
-		rows, err := models.GetDb().Query(r.Context(), "SELECT * FROM api.browse()")
-		if err != nil {
-			http.Error(w, "Error querying database", http.StatusInternalServerError)
+		pageStr := r.URL.Query().Get("page")
+		if pageStr == "" {
+			pageStr = "1"
+		}
+		var page int
+		_, err := fmt.Sscanf(pageStr, "%d", &page)
+		if err != nil || page < 1 {
+			http.Error(w, "Invalid page number", http.StatusBadRequest)
 			return
 		}
-		defer rows.Close()
 
-		x, err := models.ApiQuery(r.Context(), "browse", 5)
-		if err != nil {
-			http.Error(w, "Error querying database", http.StatusInternalServerError)
+		pageSizeStr := r.URL.Query().Get("pageSize")
+		if pageSizeStr == "" {
+			pageSizeStr = "20"
+		}
+		var pageSize int
+		_, err = fmt.Sscanf(pageSizeStr, "%d", &pageSize)
+		if err != nil || pageSize < 1 || pageSize > 100 {
+			http.Error(w, "Invalid 'pageSize' number", http.StatusBadRequest)
 			return
 		}
-		fmt.Println(x)
 
-		data, err := pgx.CollectRows(rows, pgx.RowToMap)
+		items, err := models.ApiQuery[models.Browse](r.Context(), "browse", page, pageSize)
 		if err != nil {
-			http.Error(w, "Error collecting rows", http.StatusInternalServerError)
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
 			return
 		}
 
 		cards := []widgets.Card{}
-		itemsIface, ok := models.ApiQuery(r.Context(), "browse").([]interface{})
-		if !ok {
-			http.Error(w, "Unexpected data format from database", http.StatusInternalServerError)
-			return
-		}
-
-		for _, it := range itemsIface {
-			row, ok := it.(map[string]any)
-			if !ok {
-				continue
-			}
-
-			itemName, _ := row["item_name"].(string)
-			brandName, _ := row["brand_name"].(string)
+		for _, item := range items.Items {
 			card := widgets.Card{
-				Title:    itemName,
-				Content:  brandName,
-				ImageURL: fmt.Sprintf("/static/images/%v", row["thumbnail_url"]),
-				ImageAlt: fmt.Sprintf("%s %s", brandName, itemName),
-				Href:     fmt.Sprintf("/item/%v", row["sku"]),
+				Title:    item.ItemName,
+				Content:  item.BrandName,
+				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
+				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
+				Href:     fmt.Sprintf("/item/%s", item.ItemName),
 			}
-
 			cards = append(cards, card)
 		}
-		views.RenderPage("browse", w, views.PageData{Title: "Clothes", Data: cards})
+
+		data := struct {
+			Cards      []widgets.Card
+			Pagination widgets.Pageination
+		}{
+			Cards: cards,
+			Pagination: widgets.Pageination{
+				CurrentPage: page,
+				TotalPages:  items.TotalPages,
+				BaseURL:     *r.URL,
+			},
+		}
+
+		views.RenderPage("browse", w, views.PageData{Title: "Clothes", Data: data})
 	})
 
 	mux.HandleFunc("GET /item/{id}", func(w http.ResponseWriter, r *http.Request) {

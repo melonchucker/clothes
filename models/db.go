@@ -20,7 +20,7 @@ func GetDb() *pgxpool.Pool {
 	return pool
 }
 
-func ApiQuery(ctx context.Context, apiFunction string, args ...any) (any, error) {
+func ApiQuery[T any](ctx context.Context, apiFunction string, args ...any) (*T, error) {
 	argsStrings := make([]string, len(args))
 	for ndx := range args {
 		argsStrings[ndx] = fmt.Sprintf("$%d", ndx+1)
@@ -33,11 +33,15 @@ func ApiQuery(ctx context.Context, apiFunction string, args ...any) (any, error)
 	}
 	defer rows.Close()
 
-	res, err := pgx.CollectRows(rows, pgx.RowToMap)
+	type resultStruct struct {
+		Result T `json:"result"`
+	}
+	res, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[resultStruct])
+
 	if err != nil {
 		return nil, err
 	}
-	return res[0]["result"], nil
+	return &res.Result, nil
 }
 
 func init() {
@@ -66,7 +70,6 @@ func init() {
 
 	slices.Sort(sqlFilePaths)
 
-	// get a single connection from the pool
 	for _, f := range sqlFilePaths {
 		slog.Info("Executing sql file", "name", f)
 		content, err := os.ReadFile(f)

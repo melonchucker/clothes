@@ -3,9 +3,10 @@
 <div class="browse">
     <span>Browse {{ .Title }}</span>
     <div class="grid">
-        {{ range .Data }}
+        {{ range .Data.Cards }}
         {{ template "card" .}}
         {{ end }}
     </div>
+    {{ template "pageination" .Data.Pagination }}
 </div>
 {{ end }}
