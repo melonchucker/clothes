@@ -18,9 +18,10 @@ BEGIN
         SELECT brand.name AS brand_name,
                base_item.name AS item_name,
                description,
-               thumbnail_url
+               image.url AS thumbnail_url
         FROM base_item
         JOIN brand USING (brand_id)
+        LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
         LIMIT p_items_per_page OFFSET (p_page_index - 1) * p_items_per_page 
     ) bf INTO items;
     
@@ -78,9 +79,10 @@ BEGIN
                base_item.name AS item_name,
                description,
                rating,
-               thumbnail_url
+               image.url AS thumbnail_url
         FROM base_item
         JOIN brand USING (brand_id)
+        LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
         WHERE base_item.name = p_base_item_name
       AND brand.brand_id = (SELECT brand_id FROM brand WHERE name = p_brand_name)
 

@@ -73,7 +73,7 @@ CREATE TABLE base_item (
     name CITEXT NOT NULL,
     description TEXT,
     brand_id INTEGER REFERENCES brand (brand_id),
-    thumbnail_url TEXT,
+    thumbnail_image_id INTEGER REFERENCES image (image_id),
     rating NUMERIC(2, 1) CHECK (rating >= 0 AND rating <= 5),
     added TIMESTAMPTZ DEFAULT NOW()
 );
@@ -82,17 +82,31 @@ CREATE FUNCTION add_base_item(
     p_name TEXT,
     p_description TEXT,
     p_brand_name TEXT,
-    p_thumbnail_url TEXT
+    p_thumbnail_url TEXT,
+    p_image_urls TEXT[] DEFAULT NULL
 ) RETURNS VOID AS $$
 DECLARE
     v_brand_id INTEGER;
     v_base_item_id INTEGER;
+    v_image_id INTEGER;
     v_url TEXT;
 BEGIN
     IF p_brand_name IS NOT NULL THEN
         v_brand_id := (SELECT brand_id FROM brand WHERE name = p_brand_name);
     END IF;
-    INSERT INTO base_item (name, description, brand_id, thumbnail_url) VALUES (p_name, p_description, v_brand_id, p_thumbnail_url) RETURNING base_item_id INTO v_base_item_id;
+
+    IF p_thumbnail_url IS NOT NULL THEN
+        INSERT INTO image (url) VALUES (p_thumbnail_url) ON CONFLICT (url) DO NOTHING RETURNING image_id INTO v_image_id;
+    END IF;
+
+    INSERT INTO base_item (name, description, brand_id, thumbnail_image_id) VALUES (p_name, p_description, v_brand_id, v_image_id) RETURNING base_item_id INTO v_base_item_id;
+
+    IF p_image_urls IS NOT NULL THEN
+        FOREACH v_url IN ARRAY p_image_urls
+        LOOP
+            INSERT INTO image (url) VALUES (v_url) ON CONFLICT (url) DO NOTHING;
+        END LOOP;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
