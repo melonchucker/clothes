@@ -5,6 +5,7 @@
     </div>
     <div class="product-info">
         <h1><a href="/brands/{{ .Data.Brand }}">{{ .Data.Brand }}</a></h1>
+        {{ .Data.ImageUrls}}
         <h2 class="item-name">{{ .Data.ItemName }}</h2>
         <div>{{ template "rating" .Data.Rating }} {{ .Data.Rating.Rating }}</div>
         <div>Retail Price: ${{ .Data.Price }}</div>

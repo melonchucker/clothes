@@ -65,6 +65,7 @@ CREATE FUNCTION api.detail (p_base_item_name CITEXT, p_brand_name CITEXT) RETURN
 DECLARE
     p_result JSONB;
     p_variants JSONB;
+    p_image_urls TEXT[];
 BEGIN
     IF p_base_item_name IS NULL THEN
         RAISE EXCEPTION '"Base item name" is required';
@@ -94,6 +95,13 @@ BEGIN
     INTO STRICT p_variants;
 
     p_result := p_result || jsonb_build_object('variants', p_variants);
+
+    SELECT COALESCE(array_agg(url), '{}')
+    FROM image JOIN base_item_image USING (image_id)
+    WHERE base_item_image.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
+    INTO STRICT p_image_urls;
+
+    p_result := p_result || jsonb_build_object('image_urls', p_image_urls);
 
     RETURN p_result;
 END;

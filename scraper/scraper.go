@@ -79,25 +79,25 @@ func scrapeFashionPass() {
 		if err != nil {
 			slog.Error("Failed to insert vendors", "error", err)
 		}
-		count := 0
 		for _, item := range j.ProductList.ResultItems {
 			imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s", item.ThumbnailImage)
 
+			imgC.Visit(imgUrl)
+
+			images := []string{}
+			for _, img := range item.Images {
+				imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s?profile=a", img)
+				fmt.Println("Image URL:", imgUrl)
+				images = append(images, imgUrl)
+				// imgC.Visit(imgUrl)
+			}
+
 			_, err := models.GetDb().Exec(context.Background(), `
-			SELECT add_base_item($1, $2, $3, $4);
-			`, item.Title, "", item.Vendor, item.ThumbnailImage)
+			SELECT add_base_item($1, $2, $3, $4, $5);
+			`, item.Title, "", item.Vendor, item.ThumbnailImage, images)
 			if err != nil {
 				slog.Error("Failed to insert item", "error", err, "item", item)
 			}
-			imgC.Visit(imgUrl)
-
-			for _, img := range item.Images {
-				count++
-				imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s?profile=a", img)
-				fmt.Println("Image URL:", imgUrl)
-				// imgC.Visit(imgUrl)
-			}
-			fmt.Println("count", count)
 		}
 	})
 

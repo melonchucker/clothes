@@ -22,6 +22,6 @@ type Detail struct {
 	BrandName    string   `json:"brand_name"`
 	Rating       float64  `json:"rating"`
 	Description  string   `json:"description"`
-	PictureUrls  []string `json:"picture_urls"`
+	ImageUrls    []string `json:"image_urls"`
 	ThumbnailUrl string   `json:"thumbnail_url"`
 }

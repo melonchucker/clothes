@@ -74,16 +74,25 @@ CREATE TABLE base_item (
     description TEXT,
     brand_id INTEGER REFERENCES brand (brand_id),
     thumbnail_image_id INTEGER REFERENCES image (image_id),
-    rating NUMERIC(2, 1) CHECK (rating >= 0 AND rating <= 5),
+    rating NUMERIC(2, 1) CHECK (
+        rating >= 0
+        AND rating <= 5
+    ),
     added TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE FUNCTION add_base_item(
+CREATE TABLE base_item_image (
+    base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
+    image_id INTEGER REFERENCES image (image_id) ON DELETE CASCADE,
+    PRIMARY KEY (base_item_id, image_id)
+);
+
+CREATE FUNCTION add_base_item (
     p_name TEXT,
     p_description TEXT,
     p_brand_name TEXT,
     p_thumbnail_url TEXT,
-    p_image_urls TEXT[] DEFAULT NULL
+    p_image_urls TEXT[] DEFAULT '{}'::text[]
 ) RETURNS VOID AS $$
 DECLARE
     v_brand_id INTEGER;
@@ -101,12 +110,11 @@ BEGIN
 
     INSERT INTO base_item (name, description, brand_id, thumbnail_image_id) VALUES (p_name, p_description, v_brand_id, v_image_id) RETURNING base_item_id INTO v_base_item_id;
 
-    IF p_image_urls IS NOT NULL THEN
-        FOREACH v_url IN ARRAY p_image_urls
-        LOOP
-            INSERT INTO image (url) VALUES (v_url) ON CONFLICT (url) DO NOTHING;
-        END LOOP;
-    END IF;
+    FOREACH v_url IN ARRAY p_image_urls
+    LOOP
+        INSERT INTO image (url) VALUES (v_url) RETURNING image_id INTO v_image_id;
+        INSERT INTO base_item_image (base_item_id, image_id) VALUES (v_base_item_id, v_image_id);
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
