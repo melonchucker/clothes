@@ -1,0 +1,22 @@
+{{ define "content" }}
+<div class="brands">
+    <h1>Brands</h1>
+    <span class="letters centered">
+        {{ range .Data.Letters }}
+        <a class="mark" href="#{{ . }}">{{ . }}</a>
+        {{ end }}
+    </span>
+    <div class="brands-list">
+        {{ range $letter := .Data.Letters }}
+        <div class="brand">
+            <h2>{{ $letter }}</h2>
+            <div class="grid" id="{{ $letter }}">
+                {{ range $brand := index $.Data $letter }}
+                <a href="/brands/{{ $brand }}">{{ $brand }}</a>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

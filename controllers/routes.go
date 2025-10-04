@@ -6,6 +6,7 @@ import (
 	"clothes/views/widgets"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func GetServerMux() http.Handler {
@@ -16,6 +17,18 @@ func GetServerMux() http.Handler {
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {
+		brands, err := models.ApiQuery[models.Brands](r.Context(), "brands")
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println(brands)
+
+		views.RenderPage("brands", w, views.PageData{Title: "Brands", Data: brands})
+	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {
 		pageStr := r.URL.Query().Get("page")
@@ -53,7 +66,7 @@ func GetServerMux() http.Handler {
 				Content:  item.BrandName,
 				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
 				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
-				Href:     fmt.Sprintf("/item/%s", item.ItemName),
+				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
 			}
 			cards = append(cards, card)
 		}
@@ -73,11 +86,20 @@ func GetServerMux() http.Handler {
 		views.RenderPage("browse", w, views.PageData{Title: "Clothes", Data: data})
 	})
 
-	mux.HandleFunc("GET /item/{id}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /item/{brand_name}/{base_item_name}", func(w http.ResponseWriter, r *http.Request) {
+		brandName := r.PathValue("brand_name")
+		baseItemName := r.PathValue("base_item_name")
+
+		detail, err := models.ApiQuery[models.Detail](r.Context(), "detail", baseItemName, brandName)
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
 		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: map[string]any{
-			"ImageUrl": "/static/images/a-line-mini-dress-sgntr-the-label-neutral-gingham-614--1.jpg",
-			"Brand":    "Brand Name",
-			"ItemName": "Item Name",
+			"ImageUrl": fmt.Sprintf("/static/images/%s", detail.ThumbnailUrl),
+			"Brand":    detail.BrandName,
+			"ItemName": detail.ItemName,
 			"Color":    "Color",
 			"Rating":   widgets.Rating{Rating: 3.25, Max: 5},
 		}})

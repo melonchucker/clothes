@@ -32,3 +32,67 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+CREATE FUNCTION api.brands () RETURNS JSONB AS $$
+DECLARE
+    brands JSONB;
+BEGIN
+    SELECT COALESCE(
+        jsonb_object_agg(
+            initial,
+            brand_names
+        ),
+        '{}'::jsonb
+    )
+    FROM (
+        SELECT CASE
+                 WHEN SUBSTRING(unaccent(name), 1, 1) ~ '^[0-9]' THEN '#'
+                 ELSE UPPER(SUBSTRING(unaccent(name), 1, 1))
+               END AS initial,
+               jsonb_agg(name ORDER BY unaccent(name)) AS brand_names
+        FROM brand
+        GROUP BY initial
+        ORDER BY initial
+    ) b INTO brands;
+    RETURN brands;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.detail (p_base_item_name CITEXT, p_brand_name CITEXT) RETURNS JSONB AS $$
+DECLARE
+    p_result JSONB;
+    p_variants JSONB;
+BEGIN
+    IF p_base_item_name IS NULL THEN
+        RAISE EXCEPTION '"Base item name" is required';
+    END IF;
+
+        SELECT COALESCE(
+        to_jsonb(bf),
+        '{}'::jsonb
+    )
+    FROM (
+        SELECT brand.name AS brand_name,
+               base_item.name AS item_name,
+               description,
+               rating,
+               thumbnail_url
+        FROM base_item
+        JOIN brand USING (brand_id)
+        WHERE base_item.name = p_base_item_name
+      AND brand.brand_id = (SELECT brand_id FROM brand WHERE name = p_brand_name)
+
+    ) bf INTO p_result;
+
+    SELECT COALESCE(jsonb_agg(i), '[]'::jsonb)
+    FROM item i
+    WHERE i.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
+    INTO STRICT p_variants;
+
+    p_result := p_result || jsonb_build_object('variants', p_variants);
+
+    RETURN p_result;
+END;
+$$ LANGUAGE plpgsql;

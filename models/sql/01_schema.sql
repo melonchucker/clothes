@@ -1,6 +1,8 @@
 SET
     client_encoding = 'UTF8';
 
+CREATE EXTENSION IF NOT EXISTS citext;
+
 CREATE TABLE basic_size (size TEXT PRIMARY KEY);
 
 INSERT INTO
@@ -38,7 +40,7 @@ VALUES
 
 CREATE TABLE brand (
     brand_id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
+    name CITEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE tag (
@@ -59,12 +61,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TABLE image (
+    image_id SERIAL PRIMARY KEY,
+    url TEXT UNIQUE NOT NULL,
+    added TIMESTAMPTZ DEFAULT NOW(),
+    alt TEXT
+);
+
 CREATE TABLE base_item (
     base_item_id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name CITEXT NOT NULL,
     description TEXT,
     brand_id INTEGER REFERENCES brand (brand_id),
     thumbnail_url TEXT,
+    rating NUMERIC(2, 1) CHECK (rating >= 0 AND rating <= 5),
     added TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -1,7 +1,7 @@
 
 {{ define "content" }}
 <div class="browse">
-    <span>Browse {{ .Title }}</span>
+    <h1>Browse {{ .Title }}</h1>
     <div class="grid">
         {{ range .Data.Cards }}
         {{ template "card" .}}

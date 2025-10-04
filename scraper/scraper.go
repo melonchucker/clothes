@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 	"path/filepath"
 	"time"
@@ -32,16 +31,17 @@ type FashionPassResponse struct {
 			Title  string `json:"title"`
 			Handle string `json:"handle"`
 			// They misspelled "product_cost" in their API
-			PrductCost        float64 `json:"prduct_cost"`
-			Retail            float64 `json:"retail"`
-			Discount          float64 `json:"discount"`
-			SaleStockDiscount float64 `json:"sale_stock_discount"`
-			SalePrice         float64 `json:"sale_price"`
-			NewItemDiscount   float64 `json:"newitem_discount"`
-			UseItemDiscount   float64 `json:"useitem_discount"`
-			Vendor            string  `json:"vendor"`
-			VendorHandle      string  `json:"vendor_handle"`
-			ThumbnailImage    string  `json:"thumbnail_image"`
+			PrductCost        float64  `json:"prduct_cost"`
+			Retail            float64  `json:"retail"`
+			Discount          float64  `json:"discount"`
+			SaleStockDiscount float64  `json:"sale_stock_discount"`
+			SalePrice         float64  `json:"sale_price"`
+			NewItemDiscount   float64  `json:"newitem_discount"`
+			UseItemDiscount   float64  `json:"useitem_discount"`
+			Vendor            string   `json:"vendor"`
+			VendorHandle      string   `json:"vendor_handle"`
+			ThumbnailImage    string   `json:"thumbnail_image"`
+			Images            []string `json:"images"`
 		} `json:"result_items"`
 	} `json:"product_list"`
 }
@@ -79,7 +79,7 @@ func scrapeFashionPass() {
 		if err != nil {
 			slog.Error("Failed to insert vendors", "error", err)
 		}
-
+		count := 0
 		for _, item := range j.ProductList.ResultItems {
 			imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s", item.ThumbnailImage)
 
@@ -90,6 +90,14 @@ func scrapeFashionPass() {
 				slog.Error("Failed to insert item", "error", err, "item", item)
 			}
 			imgC.Visit(imgUrl)
+
+			for _, img := range item.Images {
+				count++
+				imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s?profile=a", img)
+				fmt.Println("Image URL:", imgUrl)
+				// imgC.Visit(imgUrl)
+			}
+			fmt.Println("count", count)
 		}
 	})
 
@@ -114,5 +122,5 @@ func scrapeFashionPass() {
 		return
 	}
 
-	http.Get("https://collections.fashionpass.com/api/v1/collections/SearchByHandle2/clothing?items_per_page=48&sort_by=pos&sort_order=desc&page=33&show_hidden_items=3&exclude_tags=bump-photo&flex_size=&default_size=&sort_by_size=false&in_stock=0&in_stock_sizes=0&isprice_for_customer=false&isSub=false&new_inStockFlag=true&auto_hide=true&is_customer_subscribed=false")
+	// http.Get("https://collections.fashionpass.com/api/v1/collections/SearchByHandle2/clothing?items_per_page=48&sort_by=pos&sort_order=desc&page=33&show_hidden_items=3&exclude_tags=bump-photo&flex_size=&default_size=&sort_by_size=false&in_stock=0&in_stock_sizes=0&isprice_for_customer=false&isSub=false&new_inStockFlag=true&auto_hide=true&is_customer_subscribed=false")
 }
