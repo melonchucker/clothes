@@ -1,16 +1,12 @@
 {{ define "content" }}
-<div class="product-detail">
-    <div class="product-images">
-        <img loading="lazy" src='{{ .Data.ImageUrl }}' alt="{{ .Data.ItemName }}" />
-    </div>
+<div class="detail">
+    {{ template "imageViewer" .Data.ImageViewer }}
     <div class="product-info">
         <h1><a href="/brands/{{ .Data.Brand }}">{{ .Data.Brand }}</a></h1>
-        {{ .Data.ImageUrls}}
         <h2 class="item-name">{{ .Data.ItemName }}</h2>
         <div>{{ template "rating" .Data.Rating }} {{ .Data.Rating.Rating }}</div>
-        <div>Retail Price: ${{ .Data.Price }}</div>
         <div class="details">
-            <div>Color: {{ .Data.Color }}</div>
+            <h3>Details</h3>
         </div>
     </div>
 </div>

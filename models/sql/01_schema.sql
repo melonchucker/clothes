@@ -112,7 +112,10 @@ BEGIN
 
     FOREACH v_url IN ARRAY p_image_urls
     LOOP
-        INSERT INTO image (url) VALUES (v_url) RETURNING image_id INTO v_image_id;
+        INSERT INTO image (url) VALUES (v_url) ON CONFLICT (url) DO NOTHING RETURNING image_id INTO v_image_id;
+        IF v_image_id IS NULL THEN
+            SELECT image_id FROM image WHERE url = v_url INTO v_image_id;
+        END IF;
         INSERT INTO base_item_image (base_item_id, image_id) VALUES (v_base_item_id, v_image_id);
     END LOOP;
 END;

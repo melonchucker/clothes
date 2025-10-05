@@ -10,6 +10,20 @@
 </div>
 {{ end }}
 
+{{ define "imageViewer" }}
+<div class="image-viewer">
+    <div class="aside">
+        {{ range $index, $url := .ImageUrls }}
+        <img loading="lazy" src='{{ $url }}' alt="Thumbnail {{ $index }}" />
+        {{ end }}
+    </div>
+
+    <div class="selected">
+        <img loading="lazy" src='{{ index .ImageUrls 0 }}' alt="Selected Image" />
+    </div>
+</div>
+{{ end }}
+
 {{ define "pageination" }}
 <span class="pageination">
     {{ range $page := .PagesAvailable }}

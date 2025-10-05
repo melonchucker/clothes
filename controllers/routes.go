@@ -96,15 +96,41 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: map[string]any{
-			"ImageUrl":  fmt.Sprintf("/static/images/%s", detail.ThumbnailUrl),
-			"Brand":     detail.BrandName,
-			"ItemName":  detail.ItemName,
-			"Color":     "Color",
-			"Rating":    widgets.Rating{Rating: 3.25, Max: 5},
-			"ImageUrls": detail.ImageUrls,
-		}})
+		data := struct {
+			Brand       string
+			ItemName    string
+			Rating      widgets.Rating
+			ImageViewer widgets.ImageViewer
+		}{
+			Brand:    detail.BrandName,
+			ItemName: detail.ItemName,
+			Rating: widgets.Rating{
+				Rating: 3.5,
+				Max:    5,
+			},
+			ImageViewer: widgets.ImageViewer{
+				ImageUrls: []string{},
+			},
+		}
+
+		imageUrls := []string{}
+		for _, img := range detail.ImageUrls {
+			imageUrls = append(imageUrls, fmt.Sprintf("/static/images/%s", img))
+		}
+		data.ImageViewer.ImageUrls = imageUrls
+
+		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: data})
 	})
+	// 	}
+	// 	views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: map[string]any{
+	// 		"ImageUrl":  fmt.Sprintf("/static/images/%s", detail.ThumbnailUrl),
+	// 		"Brand":     detail.BrandName,
+	// 		"ItemName":  detail.ItemName,
+	// 		"Color":     "Color",
+	// 		"Rating":    widgets.Rating{Rating: 3.25, Max: 5},
+	// 		"ImageUrls": imageUrls,
+	// 	}})
+	// })
 
 	return gzipMiddleware(loggingMiddleware(mux))
 }
