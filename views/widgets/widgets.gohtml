@@ -11,6 +11,18 @@
 {{ end }}
 
 {{ define "imageViewer" }}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const asideImages = document.querySelectorAll(".image-viewer .aside img");
+        const selectedImage = document.querySelector(".image-viewer .selected img");
+        asideImages.forEach((img) => {
+            img.addEventListener("mouseover", function () {
+                selectedImage.src = this.src;
+                selectedImage.alt = this.alt;
+            });
+        });
+    });
+</script>
 <div class="image-viewer">
     <div class="aside">
         {{ range $index, $url := .ImageUrls }}

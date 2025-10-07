@@ -1,4 +1,4 @@
-package main
+package scraper
 
 import (
 	"clothes/models"
@@ -13,7 +13,7 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-func main() {
+func ScrapeAll() {
 	slog.Info("Starting scraper")
 	scrapeFashionPass()
 }
@@ -68,8 +68,6 @@ func scrapeFashionPass() {
 	apiC.OnResponse(func(r *colly.Response) {
 		j := FashionPassResponse{}
 		json.Unmarshal(r.Body, &j)
-
-		r.Save("./test.json")
 
 		vendors := []string{}
 		for _, v := range j.ProductList.VendorList {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"clothes/controllers"
-	"clothes/models"
-	"context"
+	"clothes/scraper"
+	"flag"
 	"log/slog"
 	"net/http"
 )
@@ -11,21 +11,12 @@ import (
 func main() {
 	slog.Info("Starting clothes app")
 
-	rows, err := models.GetDb().Query(context.Background(), "SELECT 1;")
-	if err != nil {
-		slog.Error("Failed to query database", "error", err)
-		return
-	}
-	// defer rows.Close()
-	slog.Info("Database query successful")
+	// run scraper option
+	scrapeBrand := flag.Bool("scrape", false, "Run scraper for given brand (nike, adidas, puma)")
+	flag.Parse()
 
-	for rows.Next() {
-		var n int
-		if err := rows.Scan(&n); err != nil {
-			slog.Error("Failed to scan row", "error", err)
-			return
-		}
-		slog.Info("Query result", "value", n)
+	if *scrapeBrand {
+		scraper.ScrapeAll()
 	}
 
 	if err := http.ListenAndServe(":8080", controllers.GetServerMux()); err != nil {
