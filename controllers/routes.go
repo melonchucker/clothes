@@ -105,7 +105,7 @@ func GetServerMux() http.Handler {
 			Brand:    detail.BrandName,
 			ItemName: detail.ItemName,
 			Rating: widgets.Rating{
-				Rating: 3.5,
+				Rating: detail.Rating,
 				Max:    5,
 			},
 			ImageViewer: widgets.ImageViewer{

@@ -92,7 +92,8 @@ CREATE FUNCTION add_base_item (
     p_description TEXT,
     p_brand_name TEXT,
     p_thumbnail_url TEXT,
-    p_image_urls TEXT[] DEFAULT '{}'::text[]
+    p_image_urls TEXT[] DEFAULT '{}'::text[],
+    p_rating NUMERIC(2, 1) DEFAULT NULL
 ) RETURNS VOID AS $$
 DECLARE
     v_brand_id INTEGER;
@@ -108,7 +109,7 @@ BEGIN
         INSERT INTO image (url) VALUES (p_thumbnail_url) ON CONFLICT (url) DO NOTHING RETURNING image_id INTO v_image_id;
     END IF;
 
-    INSERT INTO base_item (name, description, brand_id, thumbnail_image_id) VALUES (p_name, p_description, v_brand_id, v_image_id) RETURNING base_item_id INTO v_base_item_id;
+    INSERT INTO base_item (name, description, brand_id, thumbnail_image_id, rating) VALUES (p_name, p_description, v_brand_id, v_image_id, p_rating) RETURNING base_item_id INTO v_base_item_id;
 
     FOREACH v_url IN ARRAY p_image_urls
     LOOP

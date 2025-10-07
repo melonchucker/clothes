@@ -11,7 +11,6 @@ import (
 func main() {
 	slog.Info("Starting clothes app")
 
-	// run scraper option
 	scrapeBrand := flag.Bool("scrape", false, "Run scraper for given brand (nike, adidas, puma)")
 	flag.Parse()
 

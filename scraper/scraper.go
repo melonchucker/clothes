@@ -27,9 +27,10 @@ type FashionPassResponse struct {
 		SearchItemsTotal int               `json:"search_items_total"`
 		VendorList       map[string]string `json:"vendor_list"`
 		ResultItems      []struct {
-			ID     string `json:"id"`
-			Title  string `json:"title"`
-			Handle string `json:"handle"`
+			ID                  string  `json:"id"`
+			Title               string  `json:"title"`
+			Handle              string  `json:"handle"`
+			AverageReviewRating float64 `json:"averageReviewRating"`
 			// They misspelled "product_cost" in their API
 			PrductCost        float64  `json:"prduct_cost"`
 			Retail            float64  `json:"retail"`
@@ -87,8 +88,8 @@ func scrapeFashionPass() {
 			}
 
 			_, err := models.GetDb().Exec(context.Background(), `
-			SELECT add_base_item($1, $2, $3, $4, $5);
-			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images)
+			SELECT add_base_item($1, $2, $3, $4, $5, $6);
+			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images, item.AverageReviewRating)
 			if err != nil {
 				slog.Error("Failed to insert item", "error", err, "item", item)
 			}
