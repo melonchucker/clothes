@@ -32,17 +32,18 @@ type FashionPassResponse struct {
 			Handle              string  `json:"handle"`
 			AverageReviewRating float64 `json:"averageReviewRating"`
 			// They misspelled "product_cost" in their API
-			PrductCost        float64  `json:"prduct_cost"`
-			Retail            float64  `json:"retail"`
-			Discount          float64  `json:"discount"`
-			SaleStockDiscount float64  `json:"sale_stock_discount"`
-			SalePrice         float64  `json:"sale_price"`
-			NewItemDiscount   float64  `json:"newitem_discount"`
-			UseItemDiscount   float64  `json:"useitem_discount"`
-			Vendor            string   `json:"vendor"`
-			VendorHandle      string   `json:"vendor_handle"`
-			ThumbnailImage    string   `json:"thumbnail_image"`
-			Images            []string `json:"images"`
+			PrductCost        float64         `json:"prduct_cost"`
+			Retail            float64         `json:"retail"`
+			Discount          float64         `json:"discount"`
+			SaleStockDiscount float64         `json:"sale_stock_discount"`
+			SalePrice         float64         `json:"sale_price"`
+			NewItemDiscount   float64         `json:"newitem_discount"`
+			UseItemDiscount   float64         `json:"useitem_discount"`
+			Vendor            string          `json:"vendor"`
+			VendorHandle      string          `json:"vendor_handle"`
+			ThumbnailImage    string          `json:"thumbnail_image"`
+			Images            []string        `json:"images"`
+			Sizes             map[string]uint `json:"sizes"`
 		} `json:"result_items"`
 	} `json:"product_list"`
 }
@@ -87,11 +88,23 @@ func scrapeFashionPass() {
 				imgC.Visit(imgUrl)
 			}
 
-			_, err := models.GetDb().Exec(context.Background(), `
-			SELECT add_base_item($1, $2, $3, $4, $5, $6);
-			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images, item.AverageReviewRating)
+			var baseID int64
+			err := models.GetDb().QueryRow(context.Background(), `
+				SELECT add_base_item($1, $2, $3, $4, $5, $6);
+			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images, item.AverageReviewRating).Scan(&baseID)
 			if err != nil {
 				slog.Error("Failed to insert item", "error", err, "item", item)
+			}
+
+			for size, count := range item.Sizes {
+				slog.Info("Size", "size", size, "count", count)
+				var clothingID int64
+				err := models.GetDb().QueryRow(context.Background(), `
+				   SELECT add_clothing_item($1, $2);
+				`, baseID, size).Scan(&clothingID)
+				if err != nil {
+					slog.Error("Failed to insert clothing item", "error", err, "item", item, "size", size)
+				}
 			}
 		}
 	})

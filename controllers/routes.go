@@ -121,16 +121,6 @@ func GetServerMux() http.Handler {
 
 		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: data})
 	})
-	// 	}
-	// 	views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: map[string]any{
-	// 		"ImageUrl":  fmt.Sprintf("/static/images/%s", detail.ThumbnailUrl),
-	// 		"Brand":     detail.BrandName,
-	// 		"ItemName":  detail.ItemName,
-	// 		"Color":     "Color",
-	// 		"Rating":    widgets.Rating{Rating: 3.25, Max: 5},
-	// 		"ImageUrls": imageUrls,
-	// 	}})
-	// })
 
 	return gzipMiddleware(loggingMiddleware(mux))
 }

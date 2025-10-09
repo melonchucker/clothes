@@ -3,7 +3,7 @@ SET
 
 CREATE EXTENSION IF NOT EXISTS citext;
 
-CREATE TABLE basic_size (size TEXT PRIMARY KEY);
+CREATE TABLE basic_size (size CITEXT PRIMARY KEY);
 
 INSERT INTO
     basic_size (size)
@@ -94,7 +94,7 @@ CREATE FUNCTION add_base_item (
     p_thumbnail_url TEXT,
     p_image_urls TEXT[] DEFAULT '{}'::text[],
     p_rating NUMERIC(2, 1) DEFAULT NULL
-) RETURNS VOID AS $$
+) RETURNS INT AS $$
 DECLARE
     v_brand_id INTEGER;
     v_base_item_id INTEGER;
@@ -119,35 +119,52 @@ BEGIN
         END IF;
         INSERT INTO base_item_image (base_item_id, image_id) VALUES (v_base_item_id, v_image_id);
     END LOOP;
+
+    RETURN v_base_item_id;
 END;
 $$ LANGUAGE plpgsql;
 
--- This is something that physically exists in inventory
+-- This is something that physically exists in inventory.  Should not be used directly
 CREATE TABLE item (
-    item_id INTEGER PRIMARY KEY,
-    base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
-    sku TEXT UNIQUE NOT NULL
+    item_id SERIAL PRIMARY KEY,
+    base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE
 );
 
 CREATE SCHEMA item;
 
 CREATE TABLE item.clothing (
-    clothing_id SERIAL PRIMARY KEY,
-    item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
-    basic_size TEXT REFERENCES basic_size (size),
-    color_id INTEGER REFERENCES color (color_id)
+    item_id INTEGER PRIMARY KEY REFERENCES item (item_id) ON DELETE CASCADE,
+    basic_size CITEXT REFERENCES basic_size (size),
+    -- color_id INTEGER REFERENCES color (color_id),
+    -- UNIQUE (item_id, basic_size, color_id)
+    UNIQUE (item_id, basic_size)
 );
 
-CREATE TABLE item.shoes (
-    shoes_id SERIAL PRIMARY KEY,
-    item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
-    size NUMERIC(3, 1) NOT NULL
-);
+CREATE FUNCTION add_clothing_item (
+    p_base_item_id INTEGER,
+    p_basic_size CITEXT
+) RETURNS INT AS $$
+DECLARE
+    v_item_id INTEGER;
+BEGIN
+    INSERT INTO item (base_item_id) VALUES (p_base_item_id) RETURNING item_id INTO v_item_id;
+    INSERT INTO item.clothing (item_id, basic_size) VALUES (v_item_id, p_basic_size);
+    RETURN v_item_id;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE TABLE item.bottom (
-    bottom_id SERIAL PRIMARY KEY,
-    item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
-    waist INTEGER NOT NULL,
-    inseam INTEGER NOT NULL,
-    color_id INTEGER REFERENCES color (color_id)
-);
+-- CREATE TABLE item.shoes (
+--     shoes_id SERIAL PRIMARY KEY,
+--     item_id INTEGER REFERENCES item (item_id) ON DELETE CASCADE,
+--     size NUMERIC(3, 1) NOT NULL,
+--     UNIQUE (item_id, size)
+-- );
+
+-- CREATE TABLE item.bottom (
+--     bottom_id SERIAL PRIMARY KEY,
+--     item_id INTEGER REFERENCES item (item_id) ON DELETE CASCADE,
+--     waist INTEGER NOT NULL,
+--     inseam INTEGER NOT NULL,
+--     color_id INTEGER REFERENCES color (color_id),
+--     UNIQUE (item_id, waist, inseam, color_id)
+-- );

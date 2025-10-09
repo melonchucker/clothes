@@ -66,12 +66,13 @@ DECLARE
     p_result JSONB;
     p_variants JSONB;
     p_image_urls TEXT[];
+    p_item_details JSONB;
 BEGIN
     IF p_base_item_name IS NULL THEN
         RAISE EXCEPTION '"Base item name" is required';
     END IF;
 
-        SELECT COALESCE(
+    SELECT COALESCE(
         to_jsonb(bf),
         '{}'::jsonb
     )
@@ -89,6 +90,13 @@ BEGIN
 
     ) bf INTO p_result;
 
+    SELECT COALESCE(array_agg(url), '{}')
+    FROM image JOIN base_item_image USING (image_id)
+    WHERE base_item_image.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
+    INTO STRICT p_image_urls;
+
+    p_result := p_result || jsonb_build_object('image_urls', p_image_urls);
+
     SELECT COALESCE(jsonb_agg(i), '[]'::jsonb)
     FROM item i
     WHERE i.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
@@ -96,12 +104,13 @@ BEGIN
 
     p_result := p_result || jsonb_build_object('variants', p_variants);
 
-    SELECT COALESCE(array_agg(url), '{}')
-    FROM image JOIN base_item_image USING (image_id)
-    WHERE base_item_image.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
-    INTO STRICT p_image_urls;
-
-    p_result := p_result || jsonb_build_object('image_urls', p_image_urls);
+    -- BEGIN KLUDGE
+    -- This assumes it is always item.clothing
+    SELECT COALESCE(jsonb_agg(to_jsonb(ic)), '[]'::jsonb)
+    FROM item.clothing ic
+    JOIN item i ON (ic.item_id = i.item_id)
+    WHERE i.base_item_id = (SELECT base_item_id FROM base_item WHERE name = p_base_item_name)
+    INTO STRICT p_item_details;
 
     RETURN p_result;
 END;

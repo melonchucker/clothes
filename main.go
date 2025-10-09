@@ -21,5 +21,4 @@ func main() {
 	if err := http.ListenAndServe(":8080", controllers.GetServerMux()); err != nil {
 		slog.Error("Failed to start server", "error", err)
 	}
-
 }
