@@ -5,6 +5,11 @@
         <h1><a href="/brands/{{ .Data.Brand }}">{{ .Data.Brand }}</a></h1>
         <h2 class="item-name">{{ .Data.ItemName }}</h2>
         <div>{{ template "rating" .Data.Rating }} {{ .Data.Rating.Rating }}</div>
+        <div class="sizes-in-stock">
+            {{ range $size, $inStock := .Data.SizesInStock }}
+            <div class="size{{ if not $inStock }} out-of-stock{{ end }}">{{ $size }}</div>
+            {{ end }}
+        </div>
         <div class="details">
             <h3>Details</h3>
         </div>

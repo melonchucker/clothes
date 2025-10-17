@@ -97,13 +97,19 @@ func scrapeFashionPass() {
 			}
 
 			for size, count := range item.Sizes {
-				slog.Info("Size", "size", size, "count", count)
 				var clothingID int64
 				err := models.GetDb().QueryRow(context.Background(), `
 				   SELECT add_clothing_item($1, $2);
 				`, baseID, size).Scan(&clothingID)
 				if err != nil {
 					slog.Error("Failed to insert clothing item", "error", err, "item", item, "size", size)
+				}
+
+				_, err = models.GetDb().Exec(context.Background(), `
+					SELECT api.transaction('audit', $1, $2);
+				`, clothingID, count)
+				if err != nil {
+					slog.Error("Failed to insert stock audit", "error", err, "item", item, "size", size)
 				}
 			}
 		}

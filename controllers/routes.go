@@ -96,11 +96,17 @@ func GetServerMux() http.Handler {
 			return
 		}
 
+		sizesInStock := map[string]bool{}
+		for _, s := range detail.ItemSpecificDetails {
+			sizesInStock[s.Size] = s.StockQuantity > 0
+		}
+
 		data := struct {
-			Brand       string
-			ItemName    string
-			Rating      widgets.Rating
-			ImageViewer widgets.ImageViewer
+			Brand        string
+			ItemName     string
+			Rating       widgets.Rating
+			ImageViewer  widgets.ImageViewer
+			SizesInStock map[string]bool
 		}{
 			Brand:    detail.BrandName,
 			ItemName: detail.ItemName,
@@ -111,6 +117,7 @@ func GetServerMux() http.Handler {
 			ImageViewer: widgets.ImageViewer{
 				ImageUrls: []string{},
 			},
+			SizesInStock: sizesInStock,
 		}
 
 		imageUrls := []string{}

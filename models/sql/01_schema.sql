@@ -49,18 +49,6 @@ CREATE TABLE tag (
     name TEXT UNIQUE NOT NULL
 );
 
-CREATE FUNCTION add_tag (p_name TEXT, p_parent_name TEXT DEFAULT NULL) RETURNS VOID AS $$
-DECLARE
-    v_parent_id INTEGER;
-BEGIN
-    IF p_parent_name IS NOT NULL THEN
-        v_parent_id := (SELECT tag_id FROM tag WHERE name = p_parent_name);
-    END IF;
-
-    INSERT INTO tag (name, parent_tag_id) VALUES (p_name, v_parent_id);
-END;
-$$ LANGUAGE plpgsql;
-
 CREATE TABLE image (
     image_id SERIAL PRIMARY KEY,
     url TEXT UNIQUE NOT NULL,
@@ -130,6 +118,43 @@ CREATE TABLE item (
     base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE
 );
 
+CREATE TABLE transaction_event (transaction_event TEXT PRIMARY KEY);
+
+INSERT INTO
+    transaction_event (transaction_event)
+VALUES
+    -- sets the inventory to the audited quantity
+    ('audit'),
+    -- adds inventory
+    ('ship-in'),
+    -- removes inventory
+    ('ship-out'),
+    -- removes inventory
+    ('scrap');
+
+CREATE TABLE inventory_transaction (
+    inventory_transaction_id serial PRIMARY KEY,
+    item_id INT NOT NULL REFERENCES item (item_id) ON DELETE RESTRICT,
+    -- for nested transactions, like building an assembly that consumes parts...
+    -- parent_transaction_id INT REFERENCES inventory_transaction (inventory_transaction_id) ON DELETE CASCADE,
+    transaction_event TEXT NOT NULL REFERENCES transaction_event (transaction_event) ON DELETE RESTRICT,
+    transaction_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    delta_quantity INT NOT NULL
+);
+
+CREATE VIEW inventory AS
+SELECT
+    it.item_id,
+    SUM(it.delta_quantity) AS stock_quantity
+FROM
+    inventory_transaction it
+GROUP BY
+    it.item_id;
+-- HAVING
+--     SUM(it.delta_quantity) > 0;
+
+
+-- Specific types of items go in their own schema
 CREATE SCHEMA item;
 
 CREATE TABLE item.clothing (

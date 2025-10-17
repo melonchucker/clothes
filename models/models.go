@@ -18,10 +18,14 @@ type Browse struct {
 }
 
 type Detail struct {
-	ItemName     string   `json:"item_name"`
-	BrandName    string   `json:"brand_name"`
-	Rating       float64  `json:"rating"`
-	Description  string   `json:"description"`
-	ImageUrls    []string `json:"image_urls"`
-	ThumbnailUrl string   `json:"thumbnail_url"`
+	ItemName            string   `json:"item_name"`
+	BrandName           string   `json:"brand_name"`
+	Rating              float64  `json:"rating"`
+	Description         string   `json:"description"`
+	ImageUrls           []string `json:"image_urls"`
+	ThumbnailUrl        string   `json:"thumbnail_url"`
+	ItemSpecificDetails []struct {
+		Size          string `json:"size"`
+		StockQuantity int    `json:"stock_quantity"`
+	} `json:"item_specific_details"`
 }

@@ -29,6 +29,7 @@
     --color-primary-strong: #061425;
     --color-primary-hover: #0f1724;
     --color-accent: #aee9d5;
+    --color-accent-strong: #1fa77a;
     /* fresh green accent */
     --color-accent-subtle: rgba(31, 167, 122, 0.08);
     --color-border: #e6e9ee;
@@ -387,6 +388,50 @@ body {
     grid-template-columns: 1fr 2fr;
     gap: calc(var(--spacing-unit) * 4);
     padding: calc(var(--spacing-unit) * 4) 10rem;
+
+    .sizes-in-stock {
+        display: flex;
+        gap: calc(var(--spacing-unit) * 1);
+        flex-wrap: wrap;
+        div {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: background-color var(--transition-fast), border-color var(--transition-fast);
+            border-color: var(--color-muted);
+
+            &:hover {
+                background-color: var(--color-accent-subtle);
+                border-color: var(--color-accent);
+            }
+        }
+
+        .out-of-stock {
+            opacity: 0.5;
+            cursor: not-allowed;
+
+            &:hover {
+                background-color: transparent;
+            }
+
+            position: relative;
+            pointer-events: none;
+
+            &::after {
+                content: "";
+                position: absolute;
+                left: 7%;
+                right: 7%;
+                top: 50%;
+                height: 2px;
+                background: var(--color-accent-strong);
+                transform-origin: center;
+                z-index: 2;
+            }
+
+            &::after  { transform: rotate(-45deg); }
+        }
+    }
 }
 
 .pageination {
