@@ -26,7 +26,12 @@ type FashionPassResponse struct {
 		PageItemsTotal   int               `json:"page_items_total"`
 		SearchItemsTotal int               `json:"search_items_total"`
 		VendorList       map[string]string `json:"vendor_list"`
-		ResultItems      []struct {
+		TagList          []struct {
+			TagId       int    `json:"tag_id"`
+			TagName     string `json:"tag_name"`
+			WebsiteText string `json:"website_text"`
+		} `json:"tag_list"`
+		ResultItems []struct {
 			ID                  string  `json:"id"`
 			Title               string  `json:"title"`
 			Handle              string  `json:"handle"`
@@ -44,6 +49,8 @@ type FashionPassResponse struct {
 			ThumbnailImage    string          `json:"thumbnail_image"`
 			Images            []string        `json:"images"`
 			Sizes             map[string]uint `json:"sizes"`
+			// IDs to their tags
+			Tags []int `json:"tags"`
 		} `json:"result_items"`
 	} `json:"product_list"`
 }
@@ -58,7 +65,6 @@ func scrapeFashionPass() {
 	imgC := apiC.Clone()
 
 	imgC.OnResponse(func(r *colly.Response) {
-		slog.Info("Downloaded image", "url", r.Request.URL.String(), "size", len(r.Body))
 		name := filepath.Base(r.Request.URL.Path)
 
 		err := r.Save("./images/" + name)
@@ -67,15 +73,27 @@ func scrapeFashionPass() {
 		}
 	})
 
+	fashionPassTagIds := map[int]string{}
+
 	apiC.OnResponse(func(r *colly.Response) {
 		j := FashionPassResponse{}
 		json.Unmarshal(r.Body, &j)
+
+		tags := []string{}
+		for _, t := range j.ProductList.TagList {
+			tags = append(tags, t.WebsiteText)
+			fashionPassTagIds[t.TagId] = t.WebsiteText
+		}
+		_, err := models.GetDb().Exec(context.Background(), "INSERT INTO tag (name) SELECT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", tags)
+		if err != nil {
+			slog.Error("Failed to insert tags", "error", err)
+		}
 
 		vendors := []string{}
 		for _, v := range j.ProductList.VendorList {
 			vendors = append(vendors, v)
 		}
-		_, err := models.GetDb().Exec(context.Background(), "INSERT INTO brand (name) SELECT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", vendors)
+		_, err = models.GetDb().Exec(context.Background(), "INSERT INTO brand (name) SELECT unnest($1::text[]) ON CONFLICT (name) DO NOTHING", vendors)
 		if err != nil {
 			slog.Error("Failed to insert vendors", "error", err)
 		}
@@ -83,15 +101,21 @@ func scrapeFashionPass() {
 			images := []string{}
 			for _, img := range item.Images {
 				imgUrl := fmt.Sprintf("https://images.fashionpass.com/products/%s?profile=a", img)
-				fmt.Println("Image URL:", imgUrl)
 				images = append(images, imgUrl)
 				imgC.Visit(imgUrl)
 			}
 
+			tags := []string{}
+			for _, tagID := range item.Tags {
+				if tagName, ok := fashionPassTagIds[tagID]; ok {
+					tags = append(tags, tagName)
+				}
+			}
+
 			var baseID int64
 			err := models.GetDb().QueryRow(context.Background(), `
-				SELECT add_base_item($1, $2, $3, $4, $5, $6);
-			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images, item.AverageReviewRating).Scan(&baseID)
+				SELECT add_base_item($1, $2, $3, $4, $5, $6, $7);
+			`, item.Title, "", item.Vendor, item.ThumbnailImage, item.Images, item.AverageReviewRating, tags).Scan(&baseID)
 			if err != nil {
 				slog.Error("Failed to insert item", "error", err, "item", item)
 			}
@@ -113,10 +137,6 @@ func scrapeFashionPass() {
 				}
 			}
 		}
-	})
-
-	apiC.OnRequest(func(r *colly.Request) {
-		slog.Info("Visiting " + r.URL.String())
 	})
 
 	u := url.URL{}

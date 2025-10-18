@@ -70,6 +70,7 @@ h4 {
     line-height: 1.15;
     font-weight: var(--fw-medium);
     font-size: 2rem;
+    text-transform: uppercase;
 }
 
 h1 {
@@ -283,6 +284,7 @@ body {
     main {
         grid-area: main;
         padding: calc(var(--spacing-unit) * 2);
+        /* size is minimum = window height */
     }
 
     footer {
@@ -388,6 +390,18 @@ body {
     grid-template-columns: 1fr 2fr;
     gap: calc(var(--spacing-unit) * 4);
     padding: calc(var(--spacing-unit) * 4) 10rem;
+
+    .product-info {
+        display: flex;
+        flex-direction: column;
+        gap: calc(var(--spacing-unit) * 2);
+    }
+
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
 
     .sizes-in-stock {
         display: flex;

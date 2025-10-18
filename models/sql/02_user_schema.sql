@@ -1,0 +1,8 @@
+-- CREATE TABLE user (
+--     user_id SERIAL PRIMARY KEY,
+--     username CITEXT UNIQUE NOT NULL,
+--     email CITEXT UNIQUE NOT NULL,
+--     password_hash TEXT NOT NULL,
+--     created_at TIMESTAMPTZ DEFAULT NOW(),
+--     updated_at TIMESTAMPTZ DEFAULT NOW()
+-- )

@@ -3,7 +3,18 @@ SET
 
 CREATE EXTENSION IF NOT EXISTS citext;
 
-CREATE TABLE basic_size (size CITEXT PRIMARY KEY);
+CREATE TABLE basic_size (size CITEXT PRIMARY KEY, relative_order INTEGER GENERATED ALWAYS AS ( 
+    CASE
+        WHEN size = 'XS' THEN 1
+        WHEN size = 'S' THEN 2
+        WHEN size = 'M' THEN 3
+        WHEN size = 'L' THEN 4
+        WHEN size = 'XL' THEN 5
+        WHEN size = 'XXL' THEN 6
+        WHEN size = 'XXXL' THEN 7
+        ELSE NULL
+    END
+) STORED);
 
 INSERT INTO
     basic_size (size)
@@ -45,7 +56,6 @@ CREATE TABLE brand (
 
 CREATE TABLE tag (
     tag_id SERIAL PRIMARY KEY,
-    parent_tag_id INTEGER REFERENCES tag (tag_id) ON DELETE CASCADE,
     name TEXT UNIQUE NOT NULL
 );
 
@@ -81,13 +91,16 @@ CREATE FUNCTION add_base_item (
     p_brand_name TEXT,
     p_thumbnail_url TEXT,
     p_image_urls TEXT[] DEFAULT '{}'::text[],
-    p_rating NUMERIC(2, 1) DEFAULT NULL
+    p_rating NUMERIC(2, 1) DEFAULT NULL,
+    p_tags TEXT[] DEFAULT '{}'::text[]
 ) RETURNS INT AS $$
 DECLARE
     v_brand_id INTEGER;
     v_base_item_id INTEGER;
     v_image_id INTEGER;
     v_url TEXT;
+    v_tag TEXT;
+    v_tag_id INTEGER;
 BEGIN
     IF p_brand_name IS NOT NULL THEN
         v_brand_id := (SELECT brand_id FROM brand WHERE name = p_brand_name);
@@ -108,6 +121,16 @@ BEGIN
         INSERT INTO base_item_image (base_item_id, image_id) VALUES (v_base_item_id, v_image_id);
     END LOOP;
 
+    FOREACH v_tag IN ARRAY p_tags
+    LOOP
+        v_tag_id := (SELECT tag_id FROM tag WHERE name = v_tag);
+        IF v_tag_id IS NULL THEN
+            INSERT INTO tag (name) VALUES (v_tag) RETURNING tag_id INTO v_tag_id;
+        END IF;
+
+        INSERT INTO tag_item (tag_id, base_item_id) VALUES (v_tag_id, v_base_item_id);
+    END LOOP;
+
     RETURN v_base_item_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -116,6 +139,12 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE item (
     item_id SERIAL PRIMARY KEY,
     base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE
+);
+
+CREATE TABLE tag_item (
+    tag_id INTEGER REFERENCES tag (tag_id) ON DELETE CASCADE,
+    base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
+    PRIMARY KEY (tag_id, base_item_id)
 );
 
 CREATE TABLE transaction_event (transaction_event TEXT PRIMARY KEY);

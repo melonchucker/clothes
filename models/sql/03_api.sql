@@ -35,6 +35,47 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 
+CREATE FUNCTION api.search_bar(p_string CITEXT) RETURNS JSONB AS $$
+DECLARE
+    v_matching_tags TEXT[];
+    v_matching_brands TEXT[];
+    v_matching_items TEXT[];
+BEGIN
+    v_matching_tags := ARRAY(
+        SELECT name FROM tag
+        WHERE unaccent(name) ILIKE unaccent('%' || p_string || '%')
+        ORDER BY
+            CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
+            unaccent(name)
+        LIMIT 5
+    );
+    v_matching_brands := ARRAY(
+        SELECT name FROM brand
+        WHERE unaccent(name) ILIKE unaccent('%' || p_string || '%')
+        ORDER BY
+            CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
+            unaccent(name)
+        LIMIT 5
+    );
+    v_matching_items := ARRAY(
+        SELECT name FROM base_item
+        WHERE unaccent(name) ILIKE unaccent('%' || p_string || '%')
+        ORDER BY
+            CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
+            unaccent(name)
+        LIMIT 5
+    );
+
+    RETURN jsonb_build_object(
+        'tags', v_matching_tags,
+        'brands', v_matching_brands,
+        'items', v_matching_items
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE FUNCTION api.brands () RETURNS JSONB AS $$
@@ -113,13 +154,14 @@ BEGIN
             jsonb_agg(
                 jsonb_build_object(
                     'size', ic.basic_size,
-                    'stock_quantity', COALESCE(inv.stock_quantity, 0)
-                )
+                    'in_stock', COALESCE(inv.stock_quantity, 0) > 0
+                ) ORDER BY bs.relative_order
             ),
             '[]'::jsonb
         )
         FROM item.clothing ic
         JOIN item i ON ic.item_id = i.item_id
+        JOIN basic_size bs ON ic.basic_size = bs.size
         LEFT JOIN inventory inv ON i.item_id = inv.item_id
         WHERE i.base_item_id = v_base_item_id
     ); -- END KLUDGE
@@ -136,8 +178,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Modify inventory
-CREATE FUNCTION api.transaction(p_transaction_event TEXT, p_item_id INTEGER, p_quantity INTEGER DEFAULT 1) 
-RETURNS VOID AS $$
+CREATE FUNCTION api.transaction (
+    p_transaction_event TEXT,
+    p_item_id INTEGER,
+    p_quantity INTEGER DEFAULT 1
+) RETURNS VOID AS $$
 DECLARE
     v_delta_quantity INTEGER;
     v_current_quantity INTEGER;

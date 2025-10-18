@@ -25,7 +25,7 @@ type Detail struct {
 	ImageUrls           []string `json:"image_urls"`
 	ThumbnailUrl        string   `json:"thumbnail_url"`
 	ItemSpecificDetails []struct {
-		Size          string `json:"size"`
-		StockQuantity int    `json:"stock_quantity"`
+		Size    string `json:"size"`
+		InStock bool   `json:"in_stock"`
 	} `json:"item_specific_details"`
 }
