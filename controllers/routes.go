@@ -44,9 +44,12 @@ func GetServerMux() http.Handler {
 		views.RenderPage("brands", w, views.PageData{Title: "Brands", Data: brands})
 	})
 
-	mux.HandleFunc("GET /browse/{tag_name}", func(w http.ResponseWriter, r *http.Request) {
-		tagName := r.PathValue("tag_name")
-		fmt.Println("Browsing tag:", tagName)
+	mux.HandleFunc("GET /browse/{top_level_tag}", func(w http.ResponseWriter, r *http.Request) {
+		topLevelTag := r.PathValue("top_level_tag")
+		// these are other filter tags
+		tags := r.URL.Query()["tag"]
+		tags = append(tags, topLevelTag)
+
 		pageStr := r.URL.Query().Get("page")
 		if pageStr == "" {
 			pageStr = "1"
@@ -69,7 +72,7 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		items, err := models.ApiQuery[models.Browse](r.Context(), "browse", page, pageSize, []string{tagName})
+		items, err := models.ApiQuery[models.Browse](r.Context(), "browse", page, pageSize, tags)
 		if err != nil {
 			http.Error(w, "Error querying database", http.StatusInternalServerError)
 			return
@@ -99,7 +102,7 @@ func GetServerMux() http.Handler {
 			},
 		}
 
-		views.RenderPage("browse", w, views.PageData{Title: tagName, Data: data})
+		views.RenderPage("browse", w, views.PageData{Title: topLevelTag, Data: data})
 	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {

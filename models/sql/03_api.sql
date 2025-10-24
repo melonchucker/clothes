@@ -29,11 +29,17 @@ BEGIN
         FROM base_item
         JOIN brand USING (brand_id)
         LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
-        WHERE (v_include_tag_ids IS NULL OR EXISTS (
-            SELECT 1 FROM tag_item ti
-            WHERE ti.base_item_id = base_item.base_item_id
-              AND ti.tag_id = ANY (v_include_tag_ids)
-        ))
+        WHERE (
+            v_include_tag_ids IS NULL
+            OR (
+            (SELECT COUNT(DISTINCT ti.tag_id)
+             FROM tag_item ti
+             WHERE ti.base_item_id = base_item.base_item_id
+               AND ti.tag_id = ANY (v_include_tag_ids)
+            ) =
+            (SELECT COUNT(DISTINCT t) FROM unnest(v_include_tag_ids) t)
+            )
+        )
         LIMIT p_items_per_page OFFSET (p_page_index - 1) * p_items_per_page 
     ) bf);
     
@@ -41,11 +47,17 @@ BEGIN
             FROM base_item
         JOIN brand USING (brand_id)
         LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
-        WHERE (v_include_tag_ids IS NULL OR EXISTS (
-            SELECT 1 FROM tag_item ti
-            WHERE ti.base_item_id = base_item.base_item_id
-              AND ti.tag_id = ANY (v_include_tag_ids)
-        ))
+        WHERE (
+            v_include_tag_ids IS NULL
+            OR (
+            (SELECT COUNT(DISTINCT ti.tag_id)
+             FROM tag_item ti
+             WHERE ti.base_item_id = base_item.base_item_id
+               AND ti.tag_id = ANY (v_include_tag_ids)
+            ) =
+            (SELECT COUNT(DISTINCT t) FROM unnest(v_include_tag_ids) t)
+            )
+        )
 );
     v_total_pages := CEIL(v_total_count::DECIMAL / p_items_per_page);
 
