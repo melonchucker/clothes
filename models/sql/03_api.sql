@@ -35,12 +35,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 
+-- quick and dirty searching for tags, brands, and base items
 CREATE FUNCTION api.search_bar(p_string CITEXT) RETURNS JSONB AS $$
 DECLARE
     v_matching_tags TEXT[];
     v_matching_brands TEXT[];
     v_matching_items TEXT[];
+    v_max_results INTEGER := 5;
 BEGIN
     v_matching_tags := ARRAY(
         SELECT name FROM tag
@@ -48,7 +49,7 @@ BEGIN
         ORDER BY
             CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
             unaccent(name)
-        LIMIT 5
+        LIMIT v_max_results
     );
     v_matching_brands := ARRAY(
         SELECT name FROM brand
@@ -56,7 +57,7 @@ BEGIN
         ORDER BY
             CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
             unaccent(name)
-        LIMIT 5
+        LIMIT v_max_results
     );
     v_matching_items := ARRAY(
         SELECT name FROM base_item
@@ -64,7 +65,7 @@ BEGIN
         ORDER BY
             CASE WHEN unaccent(name) ILIKE unaccent(p_string || '%') THEN 0 ELSE 1 END,
             unaccent(name)
-        LIMIT 5
+        LIMIT v_max_results
     );
 
     RETURN jsonb_build_object(
@@ -74,9 +75,6 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
-
-
-CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE FUNCTION api.brands () RETURNS JSONB AS $$
 DECLARE

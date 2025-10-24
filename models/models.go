@@ -29,3 +29,9 @@ type Detail struct {
 		InStock bool   `json:"in_stock"`
 	} `json:"item_specific_details"`
 }
+
+type SearchBar struct {
+	Tags   []string `json:"tags"`
+	Brands []string `json:"brands"`
+	Items  []string `json:"items"`
+}

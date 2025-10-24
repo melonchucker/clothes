@@ -4,6 +4,7 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -18,14 +19,27 @@ func GetServerMux() http.Handler {
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
+		searchString := r.URL.Query().Get("input")
+		searchBarResult, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", searchString)
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(searchBarResult); err != nil {
+			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+			return
+		}
+	})
+
 	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {
 		brands, err := models.ApiQuery[models.Brands](r.Context(), "brands")
 		if err != nil {
 			http.Error(w, "Error querying database", http.StatusInternalServerError)
 			return
 		}
-
-		fmt.Println(brands)
 
 		views.RenderPage("brands", w, views.PageData{Title: "Brands", Data: brands})
 	})

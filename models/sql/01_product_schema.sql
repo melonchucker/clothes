@@ -2,6 +2,7 @@ SET
     client_encoding = 'UTF8';
 
 CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE TABLE basic_size (size CITEXT PRIMARY KEY, relative_order INTEGER GENERATED ALWAYS AS ( 
     CASE
@@ -54,10 +55,14 @@ CREATE TABLE brand (
     name CITEXT UNIQUE NOT NULL
 );
 
+CREATE INDEX idx_brand_name_lower ON brand (LOWER(name));
+
 CREATE TABLE tag (
     tag_id SERIAL PRIMARY KEY,
     name TEXT UNIQUE NOT NULL
 );
+
+CREATE INDEX idx_tag_name_lower ON tag (LOWER(name));
 
 CREATE TABLE image (
     image_id SERIAL PRIMARY KEY,
@@ -78,6 +83,8 @@ CREATE TABLE base_item (
     ),
     added TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_base_item_name_lower ON base_item (LOWER(name));
 
 CREATE TABLE base_item_image (
     base_item_id INTEGER REFERENCES base_item (base_item_id) ON DELETE CASCADE,
