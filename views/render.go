@@ -46,3 +46,18 @@ func RenderPage(page string, w http.ResponseWriter, pageData PageData) {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}
 }
+
+func RenderWidget(widget string, w http.ResponseWriter, data any) {
+	widgetFile := "views/widgets/widgets.gohtml"
+
+	tmpl, err := template.ParseFiles(widgetFile)
+	if err != nil {
+		slog.Error("Error loading widget template:", slog.Any("err", err))
+		http.Error(w, "Error loading widget template", http.StatusInternalServerError)
+		return
+	}
+	if err := tmpl.ExecuteTemplate(w, widget, data); err != nil {
+		slog.Error("Error rendering widget template:", slog.Any("err", err))
+		http.Error(w, "Error rendering widget template", http.StatusInternalServerError)
+	}
+}

@@ -59,7 +59,7 @@ CREATE INDEX idx_brand_name_lower ON brand (LOWER(name));
 
 CREATE TABLE tag (
     tag_id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
+    name CITEXT UNIQUE NOT NULL
 );
 
 CREATE INDEX idx_tag_name_lower ON tag (LOWER(name));

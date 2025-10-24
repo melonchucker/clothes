@@ -1,16 +1,23 @@
 CREATE SCHEMA api;
 
 CREATE FUNCTION api.browse (
-    p_page_index INTEGER DEFAULT 1,
-    p_items_per_page INTEGER DEFAULT 20
+    p_page_index INTEGER,
+    p_items_per_page INTEGER,
+    p_include_tags TEXT[] DEFAULT NULL
 ) RETURNS JSONB AS $$
 DECLARE
-    items JSONB;
-    total_count INTEGER;
-    current_page INTEGER;
-    total_pages INTEGER;
+    v_items JSONB;
+    v_total_count INTEGER;
+    v_total_pages INTEGER;
+    v_include_tag_ids INTEGER[];
 BEGIN
-    SELECT COALESCE(
+    IF p_include_tags IS NOT NULL THEN
+        v_include_tag_ids := ARRAY(
+            SELECT tag_id FROM tag WHERE name = ANY(COALESCE(p_include_tags, '{}')::citext[])
+        );
+    END IF;
+
+    v_items := (SELECT COALESCE(
         jsonb_agg(to_jsonb(bf)),
         '[]'::jsonb
     )
@@ -22,21 +29,35 @@ BEGIN
         FROM base_item
         JOIN brand USING (brand_id)
         LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
+        WHERE (v_include_tag_ids IS NULL OR EXISTS (
+            SELECT 1 FROM tag_item ti
+            WHERE ti.base_item_id = base_item.base_item_id
+              AND ti.tag_id = ANY (v_include_tag_ids)
+        ))
         LIMIT p_items_per_page OFFSET (p_page_index - 1) * p_items_per_page 
-    ) bf INTO items;
+    ) bf);
     
-    SELECT COUNT(*) FROM base_item INTO total_count;
-    total_pages := CEIL(total_count::DECIMAL / p_items_per_page);
+    v_total_count := (SELECT COUNT(*)
+            FROM base_item
+        JOIN brand USING (brand_id)
+        LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
+        WHERE (v_include_tag_ids IS NULL OR EXISTS (
+            SELECT 1 FROM tag_item ti
+            WHERE ti.base_item_id = base_item.base_item_id
+              AND ti.tag_id = ANY (v_include_tag_ids)
+        ))
+);
+    v_total_pages := CEIL(v_total_count::DECIMAL / p_items_per_page);
 
     RETURN jsonb_build_object(
-        'total_pages', total_pages,
-        'items', items
+        'total_pages', v_total_pages,
+        'items', v_items
     );
 END;
 $$ LANGUAGE plpgsql;
 
 -- quick and dirty searching for tags, brands, and base items
-CREATE FUNCTION api.search_bar(p_string CITEXT) RETURNS JSONB AS $$
+CREATE FUNCTION api.search_bar (p_string CITEXT) RETURNS JSONB AS $$
 DECLARE
     v_matching_tags TEXT[];
     v_matching_brands TEXT[];

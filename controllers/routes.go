@@ -4,7 +4,6 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -20,18 +19,19 @@ func GetServerMux() http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
-		searchString := r.URL.Query().Get("input")
-		searchBarResult, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", searchString)
-		if err != nil {
-			http.Error(w, "Error querying database", http.StatusInternalServerError)
-			return
-		}
+		// searchString := r.URL.Query().Get("input")
+		// searchBarResult, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", searchString)
+		// if err != nil {
+		// 	http.Error(w, "Error querying database", http.StatusInternalServerError)
+		// 	return
+		// }
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(searchBarResult); err != nil {
-			http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-			return
-		}
+		views.RenderWidget("searchResults", w, nil)
+		// w.Header().Set("Content-Type", "application/json")
+		// if err := json.NewEncoder(w).Encode(searchBarResult); err != nil {
+		// 	http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		// 	return
+		// }
 	})
 
 	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +42,64 @@ func GetServerMux() http.Handler {
 		}
 
 		views.RenderPage("brands", w, views.PageData{Title: "Brands", Data: brands})
+	})
+
+	mux.HandleFunc("GET /browse/{tag_name}", func(w http.ResponseWriter, r *http.Request) {
+		tagName := r.PathValue("tag_name")
+		fmt.Println("Browsing tag:", tagName)
+		pageStr := r.URL.Query().Get("page")
+		if pageStr == "" {
+			pageStr = "1"
+		}
+		var page int
+		_, err := fmt.Sscanf(pageStr, "%d", &page)
+		if err != nil || page < 1 {
+			http.Error(w, "Invalid page number", http.StatusBadRequest)
+			return
+		}
+
+		pageSizeStr := r.URL.Query().Get("pageSize")
+		if pageSizeStr == "" {
+			pageSizeStr = "20"
+		}
+		var pageSize int
+		_, err = fmt.Sscanf(pageSizeStr, "%d", &pageSize)
+		if err != nil || pageSize < 1 || pageSize > 100 {
+			http.Error(w, "Invalid 'pageSize' number", http.StatusBadRequest)
+			return
+		}
+
+		items, err := models.ApiQuery[models.Browse](r.Context(), "browse", page, pageSize, []string{tagName})
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
+		cards := []widgets.Card{}
+		for _, item := range items.Items {
+			card := widgets.Card{
+				Title:    item.ItemName,
+				Content:  item.BrandName,
+				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
+				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
+				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
+			}
+			cards = append(cards, card)
+		}
+
+		data := struct {
+			Cards      []widgets.Card
+			Pagination widgets.Pageination
+		}{
+			Cards: cards,
+			Pagination: widgets.Pageination{
+				CurrentPage: page,
+				TotalPages:  items.TotalPages,
+				BaseURL:     *r.URL,
+			},
+		}
+
+		views.RenderPage("browse", w, views.PageData{Title: tagName, Data: data})
 	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {
