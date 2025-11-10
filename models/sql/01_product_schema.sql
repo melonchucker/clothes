@@ -1,8 +1,9 @@
 SET
     client_encoding = 'UTF8';
 
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION citext;
+CREATE EXTENSION unaccent;
+CREATE EXTENSION pgcrypto;
 
 CREATE TABLE basic_size (size CITEXT PRIMARY KEY, relative_order INTEGER GENERATED ALWAYS AS ( 
     CASE

@@ -241,3 +241,76 @@ BEGIN
     VALUES (p_transaction_event, p_item_id, v_delta_quantity);
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.user_signup (
+    p_email CITEXT,
+    p_password TEXT
+) RETURNS VOID AS $$
+BEGIN
+-- use pgcrypto to hash password
+    INSERT INTO site_user (email, password_hash)
+    VALUES (
+        p_email,
+        crypt(p_password, gen_salt('bf'))
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.user_authenticate (
+    p_email CITEXT,
+    p_password TEXT
+) RETURNS TEXT AS $$
+DECLARE
+    v_password_hash TEXT;
+    v_valid_password BOOLEAN;
+    v_session_token TEXT;
+BEGIN
+    SELECT password_hash INTO v_password_hash
+    FROM site_user
+    WHERE email = p_email;
+    IF v_password_hash IS NULL THEN
+        RETURN NULL;
+    END IF;
+    
+    v_valid_password := crypt(p_password, v_password_hash) = v_password_hash;
+    IF NOT v_valid_password THEN
+        RETURN NULL;
+    END IF;
+
+    -- remove any existing sessions for this user
+    DELETE FROM session
+    WHERE site_user_id = (SELECT site_user_id FROM site_user WHERE email = p_email);
+
+    -- create new session
+    INSERT INTO session (site_user_id, session_token, expires_at)
+    VALUES (
+        (SELECT site_user_id FROM site_user WHERE email = p_email),
+        gen_random_uuid()::TEXT,
+        NOW() + INTERVAL '1 day'
+    ) RETURNING session_token INTO v_session_token;
+    RETURN v_session_token;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.user_validate_session (
+    p_email CITEXT,
+    p_session_token TEXT
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_site_user_id INTEGER;
+    v_count INTEGER;
+BEGIN
+    v_site_user_id := (SELECT site_user_id FROM site_user WHERE email = p_email);
+    IF v_site_user_id IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    SELECT COUNT(*) INTO v_count
+    FROM session
+    WHERE site_user_id = v_site_user_id
+    AND session_token = p_session_token
+    AND expires_at > NOW();
+
+    RETURN v_count > 0;
+END;
+$$ LANGUAGE plpgsql;

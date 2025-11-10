@@ -15,7 +15,7 @@ func main() {
 	flag.Parse()
 
 	if *scrapeBrand {
-		scraper.ScrapeAll()
+		go scraper.ScrapeAll()
 	}
 
 	if err := http.ListenAndServe(":8080", controllers.GetServerMux()); err != nil {

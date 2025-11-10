@@ -5,6 +5,7 @@ import (
 	"clothes/views"
 	"clothes/views/widgets"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -180,6 +181,9 @@ func GetServerMux() http.Handler {
 				Size    string
 				InStock bool
 			}
+			Details struct {
+				Description string
+			}
 		}{
 			Brand:    detail.BrandName,
 			ItemName: detail.ItemName,
@@ -194,6 +198,11 @@ func GetServerMux() http.Handler {
 				Size    string
 				InStock bool
 			}(detail.ItemSpecificDetails),
+			Details: struct {
+				Description string
+			}{
+				Description: detail.Description,
+			},
 		}
 
 		imageUrls := []string{}
@@ -203,6 +212,64 @@ func GetServerMux() http.Handler {
 		data.ImageViewer.ImageUrls = imageUrls
 
 		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: data})
+	})
+
+	mux.HandleFunc("GET /sign-in", func(w http.ResponseWriter, r *http.Request) {
+		views.RenderPage("sign-in", w, views.PageData{Title: "Sign In", Data: nil})
+	})
+
+	mux.HandleFunc("POST /sign-in", func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		session, err := models.ApiQuery[string](r.Context(), "user_authenticate", email, password)
+		if err != nil {
+			slog.Error("Error signing in user", "error", err)
+			http.Error(w, "Error signing in user", http.StatusInternalServerError)
+			return
+		}
+
+		if session == nil {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    *session,
+			HttpOnly: true,
+			Secure:   true,
+		})
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	})
+
+	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
+		views.RenderPage("sign-up", w, views.PageData{Title: "Sign Up", Data: nil})
+	})
+
+	mux.HandleFunc("POST /sign-up", func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		_, err := models.ApiQuery[string](r.Context(), "user_signup", email, password)
+		if err != nil {
+			slog.Error("Error signing up user", "error", err)
+			http.Error(w, "Error signing up user", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+
 	})
 
 	return gzipMiddleware(loggingMiddleware(mux))
