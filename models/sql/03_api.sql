@@ -259,7 +259,7 @@ $$ LANGUAGE plpgsql;
 CREATE FUNCTION api.user_authenticate (
     p_email CITEXT,
     p_password TEXT
-) RETURNS TEXT AS $$
+) RETURNS JSONB AS $$
 DECLARE
     v_password_hash TEXT;
     v_valid_password BOOLEAN;
@@ -288,7 +288,11 @@ BEGIN
         gen_random_uuid()::TEXT,
         NOW() + INTERVAL '1 day'
     ) RETURNING session_token INTO v_session_token;
-    RETURN v_session_token;
+
+    RETURN jsonb_build_object(
+        'email', p_email,
+        'session_token', v_session_token
+    );
 END;
 $$ LANGUAGE plpgsql;
 

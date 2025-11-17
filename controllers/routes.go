@@ -4,11 +4,46 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
 )
+
+type UserDetails struct {
+	Email           string
+	IsAuthenticated bool
+}
+
+func NewUserDetails(r *http.Request) UserDetails {
+	c, err := r.Cookie("session_token")
+	if err != nil || c.Value == "" {
+		return UserDetails{}
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(c.Value)
+	if err != nil {
+		return UserDetails{}
+	}
+
+	var sessionInfo struct {
+		Email        string `json:"email"`
+		SessionToken string `json:"session_token"`
+	}
+	json.Unmarshal(decoded, &sessionInfo)
+
+	isAuthenticated, err := models.ApiQuery[bool](r.Context(), "user_validate_session", sessionInfo.Email, sessionInfo.SessionToken)
+	if err != nil {
+		*isAuthenticated = false
+	}
+
+	return UserDetails{
+		Email:           sessionInfo.Email,
+		IsAuthenticated: *isAuthenticated,
+	}
+}
 
 func GetServerMux() http.Handler {
 	mux := http.NewServeMux()
@@ -159,6 +194,9 @@ func GetServerMux() http.Handler {
 			},
 		}
 
+		userDetails := NewUserDetails(r)
+		slog.Info("User details", "details", userDetails)
+
 		views.RenderPage("browse", w, views.PageData{Title: "Clothes", Data: data})
 	})
 
@@ -226,27 +264,36 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		session, err := models.ApiQuery[string](r.Context(), "user_authenticate", email, password)
+		session, err := models.ApiQuery[map[string]any](r.Context(), "user_authenticate", email, password)
 		if err != nil {
 			slog.Error("Error signing in user", "error", err)
 			http.Error(w, "Error signing in user", http.StatusInternalServerError)
 			return
 		}
-
 		if session == nil {
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 			return
 		}
 
+		b, err := json.Marshal(session)
+		if err != nil {
+			slog.Error("Error marshaling session", "error", err)
+			http.Error(w, "Error processing session", http.StatusInternalServerError)
+			return
+		}
+
+		encoded := base64.StdEncoding.EncodeToString(b)
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
-			Value:    *session,
+			Value:    encoded,
 			HttpOnly: true,
 			Secure:   true,
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
 		})
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-
 	})
 
 	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
@@ -272,5 +319,5 @@ func GetServerMux() http.Handler {
 
 	})
 
-	return gzipMiddleware(loggingMiddleware(mux))
+	return loggingMiddleware(gzipMiddleware(mux))
 }
