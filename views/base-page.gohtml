@@ -34,8 +34,12 @@
             </div>
             <a class="logo" href="/">Carousel</a>
             <span class="account-cart">
+                {{ if .UserDetails.IsAuthenticated }}
+                <a href="/account">Account ({{ .UserDetails.Email }})</a>
+                {{ else }}
                 <a href="/sign-up">Sign Up</a>
                 <a href="/sign-in">Sign In</a>
+                {{ end }}
             </span>
         </nav>
         <nav class="bottom-bar">

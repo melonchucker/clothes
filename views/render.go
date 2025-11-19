@@ -7,9 +7,15 @@ import (
 	"text/template"
 )
 
+type UserDetails struct {
+	Email           string
+	IsAuthenticated bool
+}
+
 type PageData struct {
-	Title string
-	Data  any
+	UserDetails UserDetails
+	Title       string
+	Data        any
 }
 
 const layoutFile string = "views/base-page.gohtml"

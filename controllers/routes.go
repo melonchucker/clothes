@@ -12,20 +12,20 @@ import (
 	"strings"
 )
 
-type UserDetails struct {
-	Email           string
-	IsAuthenticated bool
-}
+func NewPageData(r *http.Request, title string, data any) views.PageData {
+	pd := views.PageData{
+		Title: title,
+		Data:  data,
+	}
 
-func NewUserDetails(r *http.Request) UserDetails {
 	c, err := r.Cookie("session_token")
 	if err != nil || c.Value == "" {
-		return UserDetails{}
+		return pd
 	}
 
 	decoded, err := base64.StdEncoding.DecodeString(c.Value)
 	if err != nil {
-		return UserDetails{}
+		return pd
 	}
 
 	var sessionInfo struct {
@@ -34,22 +34,22 @@ func NewUserDetails(r *http.Request) UserDetails {
 	}
 	json.Unmarshal(decoded, &sessionInfo)
 
+	pd.UserDetails.Email = sessionInfo.Email
+
 	isAuthenticated, err := models.ApiQuery[bool](r.Context(), "user_validate_session", sessionInfo.Email, sessionInfo.SessionToken)
 	if err != nil {
 		*isAuthenticated = false
 	}
+	pd.UserDetails.IsAuthenticated = *isAuthenticated
 
-	return UserDetails{
-		Email:           sessionInfo.Email,
-		IsAuthenticated: *isAuthenticated,
-	}
+	return pd
 }
 
 func GetServerMux() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("home", w, views.PageData{Title: "Home Page"})
+		views.RenderPage("home", w, NewPageData(r, "Home", nil))
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -77,7 +77,7 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		views.RenderPage("brands", w, views.PageData{Title: "Brands", Data: brands})
+		views.RenderPage("brands", w, NewPageData(r, "Brands", brands))
 	})
 
 	mux.HandleFunc("GET /browse/{top_level_tag}", func(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +138,7 @@ func GetServerMux() http.Handler {
 			},
 		}
 
-		views.RenderPage("browse", w, views.PageData{Title: topLevelTag, Data: data})
+		views.RenderPage("browse", w, NewPageData(r, "Browse", data))
 	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {
@@ -194,10 +194,7 @@ func GetServerMux() http.Handler {
 			},
 		}
 
-		userDetails := NewUserDetails(r)
-		slog.Info("User details", "details", userDetails)
-
-		views.RenderPage("browse", w, views.PageData{Title: "Clothes", Data: data})
+		views.RenderPage("browse", w, NewPageData(r, "Clothes", data))
 	})
 
 	mux.HandleFunc("GET /item/{brand_name}/{base_item_name}", func(w http.ResponseWriter, r *http.Request) {
@@ -249,11 +246,11 @@ func GetServerMux() http.Handler {
 		}
 		data.ImageViewer.ImageUrls = imageUrls
 
-		views.RenderPage("detail", w, views.PageData{Title: "Item Detail", Data: data})
+		views.RenderPage("detail", w, NewPageData(r, detail.ItemName, data))
 	})
 
 	mux.HandleFunc("GET /sign-in", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("sign-in", w, views.PageData{Title: "Sign In", Data: nil})
+		views.RenderPage("sign-in", w, NewPageData(r, "Sign In", nil))
 	})
 
 	mux.HandleFunc("POST /sign-in", func(w http.ResponseWriter, r *http.Request) {
@@ -297,7 +294,7 @@ func GetServerMux() http.Handler {
 	})
 
 	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("sign-up", w, views.PageData{Title: "Sign Up", Data: nil})
+		views.RenderPage("sign-up", w, NewPageData(r, "Sign Up", nil))
 	})
 
 	mux.HandleFunc("POST /sign-up", func(w http.ResponseWriter, r *http.Request) {
