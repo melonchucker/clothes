@@ -53,6 +53,11 @@ func init() {
 		os.Exit(1)
 	}
 
+	slog.Info("Database connection pool established and schema initialized")
+	pool = p
+}
+
+func Migrate() {
 	files, err := os.ReadDir(sqlDir)
 	if err != nil {
 		slog.Error("Failed to read sql directory", "error", err)
@@ -77,13 +82,10 @@ func init() {
 			slog.Error("Failed to read SQL file", "file", f, "error", err)
 			os.Exit(1)
 		}
-		_, err = p.Exec(context.Background(), string(content))
+		_, err = pool.Exec(context.Background(), string(content))
 		if err != nil {
 			slog.Error("Failed to execute SQL file", "file", f, "error", err)
 			os.Exit(1)
 		}
 	}
-
-	slog.Info("Database connection pool established and schema initialized")
-	pool = p
 }

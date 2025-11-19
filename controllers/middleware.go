@@ -59,6 +59,9 @@ func authenticateMiddleware(next http.Handler) http.Handler {
 
 		cookie, err := r.Cookie("session_token")
 		if err != nil || cookie.Value == "" {
+			// redirect to login
+			slog.Info("No session cookie found, redirecting to login")
+			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
 

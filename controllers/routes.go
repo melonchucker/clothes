@@ -45,8 +45,25 @@ func NewPageData(r *http.Request, title string, data any) views.PageData {
 	return pd
 }
 
+func GetAuthenticatedServerMux() http.Handler {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		views.RenderPage("account", w, NewPageData(r, "Account", nil))
+	})
+
+	mux.HandleFunc("GET /test", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("Authenticated request to /account/test")
+	})
+
+	return authenticateMiddleware(mux)
+}
+
 func GetServerMux() http.Handler {
 	mux := http.NewServeMux()
+
+	// everything under account is authenticated
+	mux.Handle("/account/", http.StripPrefix("/account", GetAuthenticatedServerMux()))
 
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		views.RenderPage("home", w, NewPageData(r, "Home", nil))
@@ -108,6 +125,7 @@ func GetServerMux() http.Handler {
 			return
 		}
 
+		slog.Info("Browsing with tags", "tags", tags)
 		items, err := models.ApiQuery[models.Browse](r.Context(), "browse", page, pageSize, tags)
 		if err != nil {
 			http.Error(w, "Error querying database", http.StatusInternalServerError)
@@ -290,7 +308,7 @@ func GetServerMux() http.Handler {
 			SameSite: http.SameSiteLaxMode,
 		})
 
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/account", http.StatusSeeOther)
 	})
 
 	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
