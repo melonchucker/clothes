@@ -9,6 +9,8 @@
 
     <title>{{ .Title }}</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/style.css" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,43 +19,40 @@
         rel="stylesheet" />
 
     <script src="/static/scripts/funcs.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
 
     {{ block "head-extra" . }}{{ end }}
 </head>
 
 <body>
     <header>
-        <nav class="top-bar">
-            <div class="search" onblur="searchBarOnblur()">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                    <path
-                        d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
-                </svg>
-                <input placeholder="Search" onfocus="searchBarOnfocus()" oninput="searchBarOninput(this)" />
-                <div hidden class="search-results" id="search-results"></div>
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <a class="navbar-brand" href="#">Carousel</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Link</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="#">Disabled</a>
+                    </li>
+                </ul>
+                <form class="form-inline mt-2 mt-md-0">
+                    <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
             </div>
-            <a class="logo" href="/">Carousel</a>
-            <span class="account-cart">
-                {{ if .UserDetails.IsAuthenticated }}
-                <a href="/account">Account ({{ .UserDetails.Email }})</a>
-                {{ else }}
-                <a href="/sign-up">Sign Up</a>
-                <a href="/sign-in">Sign In</a>
-                {{ end }}
-            </span>
-        </nav>
-        <nav class="bottom-bar">
-            <a href="/clothes">Browse Clothes</a>
-            <a href="/brands">Brands</a>
-            <a href="/browse/dresses">Dresses</a>
-            <a href="/browse/tops">Tops</a>
-            <a href="/browse/bottoms">Bottoms</a>
-            <a href="/browse/accessories">Accessories</a>
-            <a href="/browse/shoes">Shoes</a>
-            <a href="/sale">Sale</a>
         </nav>
     </header>
-
     <main>
         {{ template "content" . }}
     </main>
