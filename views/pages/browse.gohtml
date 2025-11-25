@@ -1,12 +1,11 @@
-
 {{ define "content" }}
-<div class="browse">
-    <h1>{{ .Title }}</h1>
-    <div class="grid">
-        {{ range .Data.Cards }}
-        {{ template "card" .}}
-        {{ end }}
+<h1>{{ .Title }}</h1>
+<div class="d-flex flex-wrap gap-3 justify-content-start">
+    {{ range .Data.Cards }}
+    <div class="col-md-3">
+    {{ template "card" .}}
     </div>
-    {{ template "pageination" .Data.Pagination }}
+    {{ end }}
 </div>
+{{ template "pageination" .Data.Pagination }}
 {{ end }}

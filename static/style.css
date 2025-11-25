@@ -1,0 +1,359 @@
+body {
+  padding-top: 60px; /* space for fixed navbar */
+}
+
+/* ============================================
+   Luxe theme overrides for Bootstrap 5.3+
+   Include AFTER the Bootstrap CSS
+   ============================================ */
+
+:root {
+  /* ---------- Luxe design tokens ---------- */
+  --lux-bg: #f7f3ec;            /* page background (soft ivory)        */
+  --lux-surface: #ffffff;       /* card / modal background             */
+  --lux-ink: #22201d;           /* main text (warm near-black)         */
+  --lux-muted: #6d6459;         /* secondary text                      */
+
+  --lux-primary: #96a86c;       /* champagne gold                      */
+  --lux-primary-soft: #dee7cf;  /* soft version for hovers/backgrounds */
+  --lux-primary-strong: #919d67;
+
+  --lux-accent: #4f5a63;        /* cool slate accent                   */
+  --lux-border-subtle: rgba(0, 0, 0, 0.08);
+  --lux-shadow-soft: 0 18px 45px rgba(15, 10, 5, 0.08);
+
+  --lux-radius-soft: 0.1rem;
+  --lux-radius-pill: 999px;
+
+  --lux-transition: all 100ms ease-out;
+
+  /* ---------- Map to Bootstrap root vars ---------- */
+  --bs-body-bg: var(--lux-bg);
+  --bs-body-color: var(--lux-ink);
+
+  --bs-primary: var(--lux-primary);
+  --bs-secondary: var(--lux-muted);
+  --bs-success: #c2d3c4;
+  --bs-info: #b6c9da;
+  --bs-warning: #e2c8a4;
+  --bs-danger: #b77b7b;
+
+  /* Typography */
+  --bs-font-sans-serif: "Exo 2", system-ui, -apple-system, "Segoe UI",
+                        Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
+                       "Liberation Mono", "Courier New", monospace;
+
+  /* Global link color */
+  --bs-link-color: var(--lux-accent);
+  --bs-link-hover-color: #3f4a52;
+
+  /* General radius + shadow vibes */
+  --bs-border-radius: 0.5rem;
+  --bs-border-radius-sm: 0.4rem;
+  --bs-border-radius-lg: 0.9rem;
+  --bs-border-color: var(--lux-border-subtle);
+
+  --bs-box-shadow: var(--lux-shadow-soft);
+}
+
+/* ============================================
+   Base elements
+   ============================================ */
+
+body {
+  background-color: var(--lux-bg);
+  color: var(--lux-ink);
+  font-family: var(--bs-font-sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: var(--bs-link-color);
+  transition: color 160ms ease-out;
+}
+
+a:hover {
+  color: var(--bs-link-hover-color);
+}
+
+/* Headings – editorial, fashion-mag vibe.
+   (Make sure you load a matching serif, e.g. Playfair Display.) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Playfair Display", "Times New Roman", serif;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--lux-ink);
+}
+
+/* Subtle section titles */
+h2,
+h3 {
+  font-weight: 500;
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+/* Generic button feel */
+.btn {
+  --bs-btn-font-family: var(--bs-font-sans-serif);
+  --bs-btn-font-weight: 500;
+  --bs-btn-border-radius: var(--lux-radius-soft);
+  --bs-btn-padding-y: 0.55rem;
+  --bs-btn-padding-x: 1.6rem;
+  --bs-btn-letter-spacing: 0.03em;
+
+  border-width: 1px;
+  transition: var(--lux-transition);
+}
+
+/* Primary button – champagne pill */
+.btn-primary {
+  --bs-btn-color: #ffffff;
+  --bs-btn-bg: var(--lux-primary);
+  --bs-btn-border-color: var(--lux-primary);
+
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-hover-bg: var(--lux-primary-strong);
+  --bs-btn-hover-border-color: var(--lux-primary-strong);
+
+  --bs-btn-active-bg: #8b7055;
+  --bs-btn-active-border-color: #8b7055;
+
+  --bs-btn-focus-shadow-rgb: 181, 154, 123;
+}
+
+/* Outline primary – understated line with soft fill on hover */
+.btn-outline-primary {
+  --bs-btn-color: var(--lux-primary-strong);
+  --bs-btn-border-color: var(--lux-primary-soft);
+
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-hover-bg: var(--lux-primary-strong);
+  --bs-btn-hover-border-color: var(--lux-primary-strong);
+
+  --bs-btn-active-bg: #8b7055;
+  --bs-btn-active-border-color: #8b7055;
+}
+
+/* Ghost / link-style buttons for subtle UI actions */
+.btn-link {
+  --bs-btn-color: var(--lux-accent);
+  --bs-btn-hover-color: var(--lux-primary-strong);
+  text-underline-offset: 0.15em;
+}
+
+/* ============================================
+   Navbar / Nav
+   ============================================ */
+
+.navbar {
+  background-color: rgba(247, 243, 236, 0.96);
+  border-bottom: 1px solid var(--lux-border-subtle);
+}
+
+.navbar-brand {
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 2rem;
+}
+
+.navbar-light .navbar-nav .nav-link,
+.navbar .nav-link {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lux-muted);
+  padding-inline: 0.9rem;
+}
+
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar .nav-link:hover,
+.navbar-light .navbar-nav .nav-link.active,
+.navbar .nav-link.active {
+  color: var(--lux-ink);
+}
+
+/* ============================================
+   Cards & surfaces
+   ============================================ */
+
+.card {
+  --bs-card-bg: var(--lux-surface);
+  --bs-card-border-color: var(--lux-border-subtle);
+  --bs-card-border-radius: var(--lux-radius-soft);
+  --bs-card-box-shadow: var(--lux-shadow-soft);
+
+  border: 1px solid var(--lux-border-subtle);
+  box-shadow: var(--lux-shadow-soft);
+}
+
+.card-header {
+  background-color: #f3eee6;
+  border-bottom: 1px solid var(--lux-border-subtle);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lux-muted);
+}
+
+.card-title {
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Product image feel */
+.card-img-top {
+  border-radius: calc(var(--lux-radius-soft) - 0.15rem) calc(var(--lux-radius-soft) - 0.15rem) 0 0;
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+
+.form-control,
+.form-select {
+  --bs-body-bg: var(--lux-surface);
+  --bs-border-color: var(--lux-border-subtle);
+
+  border-radius: 0.4rem;
+  border-color: var(--lux-border-subtle);
+  padding-block: 0.55rem;
+  padding-inline: 0.9rem;
+  background-color: var(--lux-surface);
+  transition: var(--lux-transition);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--lux-primary-soft);
+  box-shadow: 0 0 0 0.1rem rgba(181, 154, 123, 0.18);
+}
+
+/* Labels & help text */
+.form-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lux-muted);
+}
+
+.form-text {
+  color: var(--lux-muted);
+  font-size: 0.8rem;
+}
+
+/* Checkboxes / radios – softer look */
+.form-check-input:checked {
+  background-color: var(--lux-primary);
+  border-color: var(--lux-primary);
+}
+
+/* ============================================
+   Badges, pills, alerts
+   ============================================ */
+
+.badge {
+  --bs-badge-font-weight: 500;
+  --bs-badge-border-radius: var(--lux-radius-pill);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background-color: var(--lux-primary-soft) !important;
+  color: var(--lux-primary-strong);
+}
+
+/* Subtle alert styling for account / rental states */
+.alert {
+  border-radius: var(--lux-radius-soft);
+  border-color: var(--lux-border-subtle);
+}
+
+.alert-primary {
+  color: var(--lux-primary-strong);
+  background-color: #f3ece2;
+  border-color: #e4d6c3;
+}
+
+/* ============================================
+   Modals & dropdowns
+   ============================================ */
+
+.modal-content {
+  border-radius: var(--lux-radius-soft);
+  border: 1px solid var(--lux-border-subtle);
+  box-shadow: var(--lux-shadow-soft);
+  background-color: var(--lux-surface);
+}
+
+.modal-header {
+  border-bottom-color: var(--lux-border-subtle);
+}
+
+.modal-footer {
+  border-top-color: var(--lux-border-subtle);
+}
+
+.dropdown-menu {
+  --bs-dropdown-bg: var(--lux-surface);
+  --bs-dropdown-border-color: var(--lux-border-subtle);
+  --bs-dropdown-border-radius: 0.6rem;
+
+  box-shadow: var(--lux-shadow-soft);
+}
+
+/* ============================================
+   Background colors
+   ============================================ */
+.bg-dark {
+  background-color: var(--lux-ink) !important;
+  color: #ffffff;
+}
+
+/* ============================================
+   Utility tweaks
+   ============================================ */
+
+/* Section dividers for category blocks */
+.lux-section {
+  padding-block: 3rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Muted, editorial overline text */
+.lux-overline {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--lux-muted);
+}
+
+/* Minimal hero titles */
+.lux-hero-title {
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: clamp(2.4rem, 4vw, 3.2rem);
+  line-height: 1.1;
+}
+
+/* Subtle image hover for product cards */
+.lux-product-image-hover img {
+  transition: transform 260ms ease-out, filter 260ms ease-out;
+}
+
+.lux-product-image-hover:hover img {
+  transform: translateY(-3px) scale(1.01);
+  filter: saturate(1.05);
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+}

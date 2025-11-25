@@ -1,11 +1,11 @@
 {{ define "card" }}
 <div class="card">
     <a href="{{ .Href }}">
-        <img loading="lazy" src='{{ .ImageURL }}' alt="{{ .ImageAlt }}" />
+        <img class="card-img-top col-auto" loading="lazy" src='{{ .ImageURL }}' alt="{{ .ImageAlt }}" />
     </a>
-    <div>
-        <h2 class="bold uppercase">{{ .Title }}</h2>
-        <div class="bold uppercase">{{ .Content }}</div>
+    <div class="card-body">
+        <h2 class="card-title">{{ .Title }}</h2>
+        <div class="card-text">{{ .Content }}</div>
     </div>
 </div>
 {{ end }}
@@ -25,11 +25,13 @@
 {{ end }}
 
 {{ define "pageination" }}
-<span class="pageination">
+<ul class="pagination">
     {{ range $page := .PagesAvailable }}
-    <a href="{{ $page.PageUrl }}" {{ if eq $page.Page $.CurrentPage }}class="active" {{ end }}>{{ $page.Page }}</a>
+    <li class="page-item{{ if eq $page.Page $.CurrentPage }} active{{ end }}">
+        <a href="{{ $page.PageUrl }}" class="page-link">{{ $page.Page }}</a>
+    </li>
     {{ end }}
-</span>
+</ul>
 {{ end }}
 
 {{ define "rating" }}
