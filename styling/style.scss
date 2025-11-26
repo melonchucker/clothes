@@ -1,0 +1,359 @@
+@import "./node_modules/bootstrap/scss/functions";
+
+// 1. Luxe design tokens (your "brand system")
+$lux-bg:              #f7f3ec;  // page background (soft ivory)
+$lux-surface:         #ffffff;  // cards / modals
+$lux-ink:             #22201d;  // main text
+$lux-muted:           #6d6459;  // secondary text
+
+$lux-primary:         #96a86c;  // champagne / olive gold
+$lux-primary-soft:    #dee7cf;  // subtle background / hover
+$lux-primary-strong:  #919d67;
+
+$lux-accent:          #4f5a63;  // slate accent
+$lux-border-subtle:   rgba(#000, 0.08);
+$lux-shadow-soft:     0 18px 45px rgba(15, 10, 5, 0.08);
+
+$lux-radius-soft:     0rem;
+$lux-radius-pill:     999px;
+
+// slightly snappier transition than default
+$transition-base:     all 0.12s ease-out !default;
+
+
+// 2. Map tokens → Bootstrap core variables
+// ----------------------------------------
+
+// Color system
+$primary:   $lux-primary;
+$secondary: $lux-muted;
+$success:   #c2d3c4;
+$info:      #b6c9da;
+$warning:   #e2c8a4;
+$danger:    #b77b7b;
+$light:     #f9f5ee;
+$dark:      #151310;
+
+// Body
+$body-bg:   $lux-bg;
+$body-color:$lux-ink;
+
+// Typography
+$font-family-sans-serif: "Exo 2", system-ui, -apple-system, "Segoe UI",
+                         Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-base:       $font-family-sans-serif;
+
+$headings-font-family:   "Playfair Display", "Times New Roman", serif;
+$headings-font-weight:   500;
+$headings-color:         $lux-ink;
+
+// Links
+$link-color:            $lux-accent;
+$link-decoration:       none;
+$link-hover-color:      #3f4a52;
+$link-hover-decoration: none;
+
+// Radius / borders
+$border-color:        $lux-border-subtle;
+$border-radius:       $lux-radius-soft;
+$border-radius-sm:    0.1rem;
+$border-radius-lg:    0.1rem;
+$border-radius-xl:    0.14rem;
+$border-radius-xxl:   0.2rem;
+$border-radius-pill:  $lux-radius-pill;
+
+// Shadows
+$box-shadow:    $lux-shadow-soft;
+$box-shadow-sm: 0 8px 24px rgba(15, 10, 5, 0.05);
+$box-shadow-lg: 0 26px 60px rgba(15, 10, 5, 0.1);
+
+// Buttons
+$btn-font-weight:     500;
+$btn-border-radius:   $border-radius;
+$btn-border-radius-sm:$border-radius-sm;
+$btn-border-radius-lg:$border-radius-lg;
+
+// Cards
+$card-bg:            $lux-surface;
+$card-border-color:  $lux-border-subtle;
+$card-border-radius: $lux-radius-soft;
+$card-box-shadow:    $lux-shadow-soft;
+
+// Forms / inputs
+$input-bg:              $lux-surface;
+$input-border-color:    $lux-border-subtle;
+$form-select-bg:        $lux-surface;
+$form-select-border-color: $input-border-color;
+
+// Navbar
+$navbar-padding-y:        0.9rem;
+$navbar-brand-font-size:  1.75rem;
+
+
+body {
+  padding-top: 60px; // space for fixed navbar
+  background-color: $lux-bg;
+  color: $lux-ink;
+  font-family: $font-family-base;
+  -webkit-font-smoothing: antialiased;
+}
+
+// links
+a {
+  color: $link-color;
+  text-decoration: none;
+  transition: color $transition-base;
+
+  &:hover {
+    color: $link-hover-color;
+  }
+}
+
+// headings (all)
+h1, h2, h3, h4, h5, h6 {
+  font-family: $headings-font-family;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: $lux-ink;
+}
+
+// “overline” style: whenever you use small + text-uppercase
+small.text-uppercase {
+  letter-spacing: 0.2em;
+}
+
+// Hero / big titles: use Bootstrap display classes
+.display-1,
+.display-2,
+.display-3,
+.display-4 {
+  font-family: $headings-font-family;
+  letter-spacing: 0.03em;
+}
+
+.display-3 {
+  // good candidate for main hero titles
+  font-size: clamp(2.4rem, 4vw, 3.2rem);
+  line-height: 1.1;
+}
+
+// Buttons
+// .btn {
+//   letter-spacing: 0.04em;
+//   text-transform: uppercase;
+//   border-width: 1px;
+//   padding-block: 0.55rem;
+//   padding-inline: 1.6rem;
+//   font-size: 0.78rem;
+//   transition: background-color $transition-base,
+//               color $transition-base,
+//               border-color $transition-base,
+//               box-shadow $transition-base,
+//               transform 120ms ease-out;
+
+//   &:hover {
+//     transform: translateY(-1px);
+//   }
+// }
+
+.btn-primary {
+  color: #fff;
+  background-color: $lux-primary;
+  border-color: $lux-primary;
+
+  &:hover {
+    color: #fff;
+    background-color: $lux-primary-strong;
+    border-color: $lux-primary-strong;
+  }
+
+  &:active {
+    color: #fff;
+    background-color: #8b7055;
+    border-color: #8b7055;
+  }
+}
+
+.btn-outline-primary {
+  color: $lux-primary-strong;
+  border-color: $lux-primary-soft;
+
+  &:hover {
+    color: #fff;
+    background-color: $lux-primary-strong;
+    border-color: $lux-primary-strong;
+  }
+
+  &:active {
+    color: #fff;
+    background-color: #8b7055;
+    border-color: #8b7055;
+  }
+}
+
+.btn-link {
+  color: $lux-accent;
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    color: $lux-primary-strong;
+  }
+}
+
+// Navbar
+.navbar {
+  background-color: rgba(247, 243, 236, 0.8);
+  border-bottom: 1px solid $lux-border-subtle;
+  backdrop-filter: blur(10px);
+
+  .navbar-brand {
+    font-family: $headings-font-family;
+    font-weight: 200;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 2rem;
+  }
+
+  .navbar-nav .nav-link {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $lux-muted;
+    padding-inline: 0.9rem;
+
+    &.active,
+    &:hover,
+    &:focus {
+      color: $lux-ink;
+    }
+  }
+}
+
+// Cards
+.card {
+  border-radius: $lux-radius-soft;
+  border: 1px solid $lux-border-subtle;
+  background-color: $lux-surface;
+  box-shadow: $lux-shadow-soft;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #f3eee6;
+  border-bottom: 1px solid $lux-border-subtle;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $lux-muted;
+}
+
+.card-title {
+  font-family: $headings-font-family;
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+.card-img-top {
+  border-radius: calc(#{$lux-radius-soft} - 0.2rem)
+                 calc(#{$lux-radius-soft} - 0.2rem) 0 0;
+  transition: transform 260ms ease-out, filter 260ms ease-out;
+}
+
+// Product-like image hover on ALL cards with images
+.card:hover .card-img-top {
+  transform: translateY(-px) scale(1.01);
+  filter: saturate(1.05);
+}
+
+// Forms
+.form-control,
+.form-select {
+  border-radius: 0.7rem;
+  border-color: $lux-border-subtle;
+  padding-block: 0.55rem;
+  padding-inline: 0.9rem;
+  background-color: $lux-surface;
+  transition: border-color $transition-base,
+              box-shadow $transition-base,
+              background-color $transition-base;
+
+  &:focus {
+    border-color: $lux-primary-soft;
+    box-shadow: 0 0 0 0.12rem rgba(181, 154, 123, 0.2);
+  }
+}
+
+.form-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $lux-muted;
+}
+
+.form-text {
+  color: $lux-muted;
+  font-size: 0.8rem;
+}
+
+.form-check-input:checked {
+  background-color: $lux-primary;
+  border-color: $lux-primary;
+}
+
+// Badges & alerts
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: $lux-radius-pill;
+}
+
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background-color: $lux-primary-soft !important;
+  color: $lux-primary-strong;
+}
+
+.alert {
+  border-radius: $lux-radius-soft;
+  border-color: $lux-border-subtle;
+}
+
+.alert-primary {
+  color: $lux-primary-strong;
+  background-color: #f3ece2;
+  border-color: #e4d6c3;
+}
+
+// Modals & dropdowns
+.modal-content {
+  border-radius: $lux-radius-soft;
+  border: 1px solid $lux-border-subtle;
+  box-shadow: $lux-shadow-soft;
+  background-color: $lux-surface;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: $lux-border-subtle;
+}
+
+.dropdown-menu {
+  box-shadow: $lux-shadow-soft;
+}
+
+// Dark background helper – keep for existing .bg-dark
+.bg-dark {
+  background-color: $lux-ink !important;
+  color: #fff;
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@import "./node_modules/bootstrap/scss/bootstrap";
+

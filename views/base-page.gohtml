@@ -30,9 +30,9 @@
 
 <body>
     <header class="fixed-top">
-        <nav class="navbar container-fluid">
-            <form class="col-auto">
-                <div class="input-group mb-3">
+        <nav class="navbar container-fluid px-4 d-flex align-items-center">
+            <form class="col-auto d-flex align-items-center">
+                <div class="input-group">
                     <button class="input-group-text">
                         <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                             <path
@@ -43,7 +43,7 @@
                 </div>
             </form>
 
-            <a class="navbar-brand" href="/">Carousel</a>
+            <a class="col-auto navbar-brand" href="/">Carousel</a>
 
             <div class="col-auto">
                 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
@@ -52,7 +52,7 @@
                         <a class="nav-link" href="/account">Account ({{ .UserDetails.Email }})</a>
                     </li>
                     {{ else }}
-                    <li class="nav-item me-2">
+                    <li class="nav-item">
                         <a class="nav-link" href="/sign-up">Sign Up</a>
                     </li>
                     <li class="nav-item">
@@ -63,7 +63,7 @@
             </div>
         </nav>
 
-        <nav class="navbar bg-dark container-fluid justify-content-center py-2">
+        <nav class="navbar bg-dark container-fluid justify-content-around py-2">
             <a class="nav-link" href="/clothes">Browse</a>
             <a class="nav-link" href="/brands">Brands</a>
             <a class="nav-link" href="/browse/dresses">Dresses</a>
@@ -73,16 +73,32 @@
             <a class="nav-link" href="/browse/shoes">Shoes</a>
             <a class="nav-link" href="/sale">Sale</a>
         </nav>
-
     </header>
-    <main class="container mt-5 pt-4">
+
+    <main class="container mt-5 p6 pt-5">
         {{ template "content" . }}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
-
 </body>
+
+<footer class="border-top mt-4">
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <p class="mb-0 small text-muted">
+                © 2025 Your Brand. Same-day shipping where available.
+            </p>
+            <div class="d-flex gap-3 small">
+                <a href="#" class="text-muted text-decoration-none">Shipping & returns</a>
+                <a href="#" class="text-muted text-decoration-none">FAQ</a>
+                <a href="#" class="text-muted text-decoration-none">Privacy</a>
+                <a href="#" class="text-muted text-decoration-none">Terms</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
 
 </html>

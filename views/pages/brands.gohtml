@@ -1,22 +1,21 @@
 {{ define "content" }}
-<div class="brands">
-    <h1>Brands</h1>
-    <span class="letters centered">
-        {{ range .Data.Letters }}
-        <a class="mark" href="#{{ . }}">{{ . }}</a>
-        {{ end }}
-    </span>
-    <div class="brands-list">
-        {{ range $letter := .Data.Letters }}
-        <div class="brand">
-            <h2>{{ $letter }}</h2>
-            <div class="grid" id="{{ $letter }}">
-                {{ range $brand := index $.Data $letter }}
-                <a href="/brands/{{ $brand }}">{{ $brand }}</a>
-                {{ end }}
-            </div>
+<h1>Brands</h1>
+<span class="container d-flex flex-wrap gap-2">
+    {{ range .Data.Letters }}
+    <a href="#{{ . }}">{{ . }}</a>
+    {{ end }}
+</span>
+<div class="container d-flex flex-column gap-4 mt-4">
+    {{ range $letter := .Data.Letters }}
+    <div>
+        <h2>{{ $letter }}</h2>
+        <!-- grid of the brands using bootstrap -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4" id="{{ $letter }}">
+            {{ range $brand := index $.Data $letter }}
+            <a href="/brands/{{ $brand }}">{{ $brand }}</a>
+            {{ end }}
         </div>
-        {{ end }}
     </div>
+    {{ end }}
 </div>
 {{ end }}
