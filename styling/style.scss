@@ -1,14 +1,14 @@
 @import "./node_modules/bootstrap/scss/functions";
 
 // 1. Luxe design tokens (your "brand system")
-$lux-bg:              #f7f3ec;  // page background (soft ivory)
+$lux-bg:              #faf7f2;  // page background (soft ivory)
 $lux-surface:         #ffffff;  // cards / modals
 $lux-ink:             #22201d;  // main text
 $lux-muted:           #6d6459;  // secondary text
 
-$lux-primary:         #96a86c;  // champagne / olive gold
-$lux-primary-soft:    #dee7cf;  // subtle background / hover
-$lux-primary-strong:  #919d67;
+$lux-primary:         #e0c0aa;   // modern terracotta (warm + classy)
+$lux-primary-soft:    #eee3dd;   // pale clay wash (hover, backgrounds)
+$lux-primary-strong:  #b87349;   // strong clay for emphasis
 
 $lux-accent:          #4f5a63;  // slate accent
 $lux-border-subtle:   rgba(#000, 0.08);
@@ -260,7 +260,7 @@ small.text-uppercase {
 
 // Product-like image hover on ALL cards with images
 .card:hover .card-img-top {
-  transform: translateY(-px) scale(1.01);
+  transform: translateY(-1px) scale(1.01);
   filter: saturate(1.05);
 }
 

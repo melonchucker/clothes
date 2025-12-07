@@ -4,8 +4,13 @@ CREATE DOMAIN email AS citext CHECK (
 
 CREATE TABLE site_user (
     site_user_id SERIAL PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
     email email UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    is_staff BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

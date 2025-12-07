@@ -279,7 +279,7 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		session, err := models.ApiQuery[map[string]any](r.Context(), "user_authenticate", email, password)
+		session, err := models.ApiQuery[map[string]any](r.Context(), "site_user_authenticate", email, password)
 		if err != nil {
 			slog.Error("Error signing in user", "error", err)
 			http.Error(w, "Error signing in user", http.StatusInternalServerError)
@@ -320,10 +320,13 @@ func GetServerMux() http.Handler {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
+		firstName := r.FormValue("first_name")
+		lastName := r.FormValue("last_name")
+		username := r.FormValue("username")
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		_, err := models.ApiQuery[string](r.Context(), "user_signup", email, password)
+		_, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
 		if err != nil {
 			slog.Error("Error signing up user", "error", err)
 			http.Error(w, "Error signing up user", http.StatusInternalServerError)

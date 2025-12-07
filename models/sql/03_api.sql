@@ -242,21 +242,29 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.user_signup (
+-- Staff and admin are loaded through the command line
+CREATE FUNCTION api.site_user_signup (
+    p_first_name TEXT,
+    p_last_name TEXT,
+    p_username TEXT,
     p_email CITEXT,
     p_password TEXT
 ) RETURNS VOID AS $$
 BEGIN
--- use pgcrypto to hash password
-    INSERT INTO site_user (email, password_hash)
+    INSERT INTO site_user (first_name, last_name, username, email, password_hash, is_staff, is_admin)
     VALUES (
+        p_first_name,
+        p_last_name,
+        p_username,
         p_email,
-        crypt(p_password, gen_salt('bf'))
+        crypt(p_password, gen_salt('bf')),
+        FALSE,
+        FALSE
     );
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.user_authenticate (
+CREATE FUNCTION api.site_user_authenticate (
     p_email CITEXT,
     p_password TEXT
 ) RETURNS JSONB AS $$
