@@ -1,10 +1,9 @@
 package controllers
 
 import (
+	"clothes/models"
 	"compress/gzip"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -51,31 +50,21 @@ func gzipMiddleware(next http.Handler) http.Handler {
 
 func authenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sessionInfo struct {
-			Email        string `json:"email"`
-			SessionToken string `json:"session_token"`
-		}
-		var decoded []byte
-
-		cookie, err := r.Cookie("session_token")
-		if err != nil || cookie.Value == "" {
-			// redirect to login
+		c, err := r.Cookie("session_token")
+		if err != nil || c.Value == "" {
 			slog.Info("No session cookie found, redirecting to login")
 			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
 
-		decoded, err = base64.StdEncoding.DecodeString(cookie.Value)
+		siteUser, err := models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
 		if err != nil {
+			slog.Error("Error validating session token", "error", err)
+			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
 
-		json.Unmarshal(decoded, &sessionInfo)
-
-		if err := json.Unmarshal(decoded, &sessionInfo); err != nil {
-			return
-		}
-		r = r.WithContext(context.WithValue(r.Context(), "email", sessionInfo.Email))
+		r = r.WithContext(context.WithValue(r.Context(), "siteUser", *siteUser))
 
 		next.ServeHTTP(w, r)
 	})

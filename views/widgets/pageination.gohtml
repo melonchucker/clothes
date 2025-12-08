@@ -1,0 +1,9 @@
+{{ define "pageination" }}
+<ul class="pagination">
+    {{ range $page := .PagesAvailable }}
+    <li class="page-item{{ if eq $page.Page $.CurrentPage }} active{{ end }}">
+        <a href="{{ $page.PageUrl }}" class="page-link">{{ $page.Page }}</a>
+    </li>
+    {{ end }}
+</ul>
+{{ end }}

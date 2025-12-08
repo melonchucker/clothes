@@ -1,0 +1,11 @@
+{{ define "card" }}
+<div class="card">
+    <a href="{{ .Href }}">
+        <img class="card-img-top col-auto" loading="lazy" src='{{ .ImageURL }}' alt="{{ .ImageAlt }}" />
+    </a>
+    <div class="card-body">
+        <h2 class="card-title">{{ .Title }}</h2>
+        <div class="card-text">{{ .Content }}</div>
+    </div>
+</div>
+{{ end }}

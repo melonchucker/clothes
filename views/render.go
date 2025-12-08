@@ -1,21 +1,17 @@
 package views
 
 import (
+	"clothes/models"
 	"log/slog"
 	"net/http"
 	"path/filepath"
 	"text/template"
 )
 
-type UserDetails struct {
-	Email           string
-	IsAuthenticated bool
-}
-
 type PageData struct {
-	UserDetails UserDetails
-	Title       string
-	Data        any
+	SiteUser *models.SiteUser
+	Title    string
+	Data     any
 }
 
 const layoutFile string = "views/base-page.gohtml"

@@ -14,10 +14,6 @@ type Card struct {
 	Href     string
 }
 
-type ImageViewer struct {
-	ImageUrls []string
-}
-
 type Pageination struct {
 	CurrentPage int
 	TotalPages  int

@@ -17,7 +17,7 @@ CREATE TABLE site_user (
 
 CREATE TABLE session (
     session_id SERIAL PRIMARY KEY,
-    site_user_id INTEGER REFERENCES site_user (site_user_id) ON DELETE CASCADE,
+    site_user_id INTEGER UNIQUE REFERENCES site_user (site_user_id) ON DELETE CASCADE,
     session_token TEXT UNIQUE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL CHECK (expires_at > NOW())

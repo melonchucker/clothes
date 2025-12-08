@@ -249,7 +249,7 @@ CREATE FUNCTION api.site_user_signup (
     p_username TEXT,
     p_email CITEXT,
     p_password TEXT
-) RETURNS VOID AS $$
+) RETURNS TEXT AS $$
 BEGIN
     INSERT INTO site_user (first_name, last_name, username, email, password_hash, is_staff, is_admin)
     VALUES (
@@ -261,13 +261,15 @@ BEGIN
         FALSE,
         FALSE
     );
+
+    RETURN api.site_user_authenticate(p_email, p_password);
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION api.site_user_authenticate (
     p_email CITEXT,
     p_password TEXT
-) RETURNS JSONB AS $$
+) RETURNS TEXT AS $$
 DECLARE
     v_password_hash TEXT;
     v_valid_password BOOLEAN;
@@ -297,32 +299,47 @@ BEGIN
         NOW() + INTERVAL '1 day'
     ) RETURNING session_token INTO v_session_token;
 
-    RETURN jsonb_build_object(
-        'email', p_email,
-        'session_token', v_session_token
-    );
+    RETURN v_session_token;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION api.user_validate_session (
-    p_email CITEXT,
     p_session_token TEXT
-) RETURNS BOOLEAN AS $$
+) RETURNS JSONB AS $$
 DECLARE
     v_site_user_id INTEGER;
     v_count INTEGER;
 BEGIN
-    v_site_user_id := (SELECT site_user_id FROM site_user WHERE email = p_email);
-    IF v_site_user_id IS NULL THEN
-        RETURN FALSE;
-    END IF;
-
     SELECT COUNT(*) INTO v_count
     FROM session
-    WHERE site_user_id = v_site_user_id
-    AND session_token = p_session_token
+    WHERE session_token = p_session_token
     AND expires_at > NOW();
 
-    RETURN v_count > 0;
+    IF v_count <> 1 THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN jsonb_build_object(
+        'first_name', su.first_name,
+        'last_name', su.last_name,
+        'username', su.username,
+        'email', su.email,
+        'is_staff', su.is_staff,
+        'is_admin', su.is_admin,
+        'created_at', su.created_at,
+        'updated_at', su.updated_at
+    )
+    FROM site_user su
+    JOIN session s ON su.site_user_id = s.site_user_id
+    WHERE s.session_token = p_session_token;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.user_signout (
+    p_session_token TEXT
+) RETURNS VOID AS $$
+BEGIN
+    DELETE FROM session
+    WHERE session_token = p_session_token;
 END;
 $$ LANGUAGE plpgsql;

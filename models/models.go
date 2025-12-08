@@ -35,3 +35,12 @@ type SearchBar struct {
 	Brands []string `json:"brands"`
 	Items  []string `json:"items"`
 }
+
+type SiteUser struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	IsStaff   bool   `json:"is_staff"`
+	IsAdmin   bool   `json:"is_admin"`
+}

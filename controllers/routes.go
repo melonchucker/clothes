@@ -4,8 +4,6 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,6 +11,7 @@ import (
 )
 
 func NewPageData(r *http.Request, title string, data any) views.PageData {
+	slog.Info("Creating PageData for", "title", title)
 	pd := views.PageData{
 		Title: title,
 		Data:  data,
@@ -23,24 +22,10 @@ func NewPageData(r *http.Request, title string, data any) views.PageData {
 		return pd
 	}
 
-	decoded, err := base64.StdEncoding.DecodeString(c.Value)
+	pd.SiteUser, err = models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
 	if err != nil {
-		return pd
+		slog.Error("Error validating session token", "error", err)
 	}
-
-	var sessionInfo struct {
-		Email        string `json:"email"`
-		SessionToken string `json:"session_token"`
-	}
-	json.Unmarshal(decoded, &sessionInfo)
-
-	pd.UserDetails.Email = sessionInfo.Email
-
-	isAuthenticated, err := models.ApiQuery[bool](r.Context(), "user_validate_session", sessionInfo.Email, sessionInfo.SessionToken)
-	if err != nil {
-		*isAuthenticated = false
-	}
-	pd.UserDetails.IsAuthenticated = *isAuthenticated
 
 	return pd
 }
@@ -49,11 +34,8 @@ func GetAuthenticatedServerMux() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("AuthentHicated request to /account/")
 		views.RenderPage("account", w, NewPageData(r, "Account", nil))
-	})
-
-	mux.HandleFunc("GET /test", func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Authenticated request to /account/test")
 	})
 
 	return authenticateMiddleware(mux)
@@ -71,20 +53,9 @@ func GetServerMux() http.Handler {
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	// hello world
 	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
-		// searchString := r.URL.Query().Get("input")
-		// searchBarResult, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", searchString)
-		// if err != nil {
-		// 	http.Error(w, "Error querying database", http.StatusInternalServerError)
-		// 	return
-		// }
-
-		views.RenderWidget("searchResults", w, nil)
-		// w.Header().Set("Content-Type", "application/json")
-		// if err := json.NewEncoder(w).Encode(searchBarResult); err != nil {
-		// 	http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-		// 	return
-		// }
+		// TODO
 	})
 
 	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {
@@ -226,11 +197,11 @@ func GetServerMux() http.Handler {
 		}
 
 		data := struct {
-			Brand       string
-			ItemName    string
-			Rating      widgets.Rating
-			ImageViewer widgets.ImageViewer
-			SizeInfo    []struct {
+			Brand     string
+			ItemName  string
+			Rating    widgets.Rating
+			ImageUrls []string
+			SizeInfo  []struct {
 				Size    string
 				InStock bool
 			}
@@ -244,9 +215,7 @@ func GetServerMux() http.Handler {
 				Rating: detail.Rating,
 				Max:    5,
 			},
-			ImageViewer: widgets.ImageViewer{
-				ImageUrls: []string{},
-			},
+			ImageUrls: detail.ImageUrls,
 			SizeInfo: []struct {
 				Size    string
 				InStock bool
@@ -262,7 +231,7 @@ func GetServerMux() http.Handler {
 		for _, img := range detail.ImageUrls {
 			imageUrls = append(imageUrls, fmt.Sprintf("/static/images/%s", img))
 		}
-		data.ImageViewer.ImageUrls = imageUrls
+		data.ImageUrls = imageUrls
 
 		views.RenderPage("detail", w, NewPageData(r, detail.ItemName, data))
 	})
@@ -279,7 +248,7 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		session, err := models.ApiQuery[map[string]any](r.Context(), "site_user_authenticate", email, password)
+		session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
 		if err != nil {
 			slog.Error("Error signing in user", "error", err)
 			http.Error(w, "Error signing in user", http.StatusInternalServerError)
@@ -290,25 +259,16 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		b, err := json.Marshal(session)
-		if err != nil {
-			slog.Error("Error marshaling session", "error", err)
-			http.Error(w, "Error processing session", http.StatusInternalServerError)
-			return
-		}
-
-		encoded := base64.StdEncoding.EncodeToString(b)
-
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
-			Value:    encoded,
+			Value:    *session,
 			HttpOnly: true,
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteLaxMode,
 		})
 
-		http.Redirect(w, r, "/account", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
@@ -326,15 +286,56 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		_, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
+		session, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
 		if err != nil {
 			slog.Error("Error signing up user", "error", err)
 			http.Error(w, "Error signing up user", http.StatusInternalServerError)
 			return
 		}
 
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		if err != nil {
+			slog.Error("Error signing in user", "error", err)
+			http.Error(w, "Error signing in user", http.StatusInternalServerError)
+			return
+		}
+		if session == nil {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			return
+		}
 
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    *session,
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})
+
+	mux.HandleFunc("GET /sign-out", func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie("session_token")
+		if err != nil || c.Value == "" {
+			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
+			return
+		}
+
+		_, err = models.ApiQuery[string](r.Context(), "user_signout", c.Value)
+		if err != nil {
+			slog.Error("Error signing out user", "error", err)
+			http.Error(w, "Error signing out user", http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    "",
+			HttpOnly: true,
+			Secure:   true,
+		})
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	return loggingMiddleware(gzipMiddleware(mux))
