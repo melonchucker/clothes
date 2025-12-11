@@ -23,16 +23,16 @@
     {{ block "head-extra" . }}{{ end }}
 </head>
 
-<body>
+<body class="min-vh-100 d-flex flex-column">
     <header class="fixed-top">
         {{ template "header" . }}
     </header>
 
-    <main class="container mt-5 p6 pt-5">
+    <main class="container mt-5 px-6 pt-5 flex-grow-1">
         {{ template "content" . }}
     </main>
 
-    <footer class="border-top mt-4">
+    <footer class="border-top mt-4 pt-4">
         {{ template "footer" . }}
     </footer>
 </body>

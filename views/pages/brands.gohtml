@@ -1,21 +1,35 @@
 {{ define "content" }}
-<h1>Brands</h1>
-<span class="container d-flex flex-wrap gap-2">
-    {{ range .Data.Letters }}
-    <a href="#{{ . }}">{{ . }}</a>
-    {{ end }}
-</span>
-<div class="container d-flex flex-column gap-4 mt-4">
-    {{ range $letter := .Data.Letters }}
-    <div>
-        <h2>{{ $letter }}</h2>
-        <!-- grid of the brands using bootstrap -->
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4" id="{{ $letter }}">
-            {{ range $brand := index $.Data $letter }}
-            <a href="/brands/{{ $brand }}">{{ $brand }}</a>
-            {{ end }}
+<div class="container my-4">
+    <!-- Centered header block using CSS Grid -->
+    <div class="grid">
+        <div class="g-col-12 g-col-md-8 g-col-lg-6 mx-auto">
+            <h1>Brands</h1>
+            <div class="d-flex flex-wrap gap-2">
+                {{ range .Data.Letters }}
+                <a href="#{{ . }}">{{ . }}</a>
+                {{ end }}
+            </div>
         </div>
     </div>
-    {{ end }}
+
+    <!-- Brand sections -->
+    <div class="mt-4 d-flex flex-column gap-4">
+        {{ range $letter := .Data.Letters }}
+        <section>
+            <h2 id="{{ $letter }}">{{ $letter }}</h2>
+            <!-- CSS Grid replaces .row + row-cols-* -->
+            <div class="grid" style="--bs-gap: 0.75rem;">
+                {{ range $brand := index $.Data $letter }}
+                <a
+                    href="/brands/{{ $brand }}"
+                    class="g-col-12 g-col-sm-6 g-col-md-4 g-col-lg-3"
+                >
+                    {{ $brand }}
+                </a>
+                {{ end }}
+            </div>
+        </section>
+        {{ end }}
+    </div>
 </div>
 {{ end }}

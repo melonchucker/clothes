@@ -18,25 +18,3 @@ async function searchBarOninput(inputElement) {
     searchResultsDiv.appendChild(title);
   }
 }
-
-async function searchBarOnfocus() {
-  let inputElement = document.querySelector("#search-results");
-  inputElement.innerHTML = "<div>search...</div>";
-  inputElement.removeAttribute("hidden");
-}
-
-async function searchBarOnblur() {
-  let inputElement = document.querySelector("#search-results");
-  inputElement.setAttribute("hidden", "true");
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  const asideImages = document.querySelectorAll(".image-viewer .aside img");
-  const selectedImage = document.querySelector(".image-viewer .selected img");
-  asideImages.forEach((img) => {
-    img.addEventListener("mouseover", function () {
-      selectedImage.src = this.src;
-      selectedImage.alt = this.alt;
-    });
-  });
-});

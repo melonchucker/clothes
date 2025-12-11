@@ -1,11 +1,14 @@
 {{ define "card" }}
-<div class="card">
-    <a href="{{ .Href }}">
-        <img class="card-img-top col-auto" loading="lazy" src='{{ .ImageURL }}' alt="{{ .ImageAlt }}" />
+<div class="card h-100">
+    <a href="{{ .Href }}" class="text-decoration-none text-reset d-flex flex-column h-100">
+        {{ if .ImageURL }}
+        <img class="card-img-top" loading="lazy" src="{{ .ImageURL }}" alt="{{ .ImageAlt }}" />
+        {{ end }}
+
+        <div class="card-body">
+            <h2 class="card-title h5 mb-2">{{ .Title }}</h2>
+            <div class="card-text">{{ .Content }}</div>
+        </div>
     </a>
-    <div class="card-body">
-        <h2 class="card-title">{{ .Title }}</h2>
-        <div class="card-text">{{ .Content }}</div>
-    </div>
 </div>
 {{ end }}

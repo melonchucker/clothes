@@ -338,5 +338,10 @@ func GetServerMux() http.Handler {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		views.RenderPage("404", w, NewPageData(r, "Page Not Found", nil))
+	}))
+
 	return loggingMiddleware(gzipMiddleware(mux))
 }
