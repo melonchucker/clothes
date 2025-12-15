@@ -1,16 +1,25 @@
+{{ define "head-extra" }}
+{{/*
+    Prevent indexing of browse pages
+    and people linking spam requests
+*/}}
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="/clothes" />
+{{ end }}
+
 {{ define "content" }}
-<div class="container py-4">
-
-    <h1 class="mb-4">{{ .Title }}</h1>
-
-    <div class="row g-3">
+<div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+    <h1 class="w-100 text-start">{{ .Title }}</h1>
+    <div class="row grid py-4">
         {{ range .Data.Cards }}
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="g-col-12 g-col-sm-6 g-col-md-6 g-col-lg-3">
             {{ template "card" . }}
         </div>
         {{ end }}
     </div>
 
-    {{ template "pageination" .Data.Pagination }}
+    <div class="w-100 d-flex justify-content-center">
+        {{ template "pageination" .Data.Pagination }}
+    </div>
 </div>
 {{ end }}

@@ -127,7 +127,9 @@ func GetServerMux() http.Handler {
 			},
 		}
 
-		views.RenderPage("browse", w, NewPageData(r, "Browse", data))
+		title := strings.Title(strings.ReplaceAll(topLevelTag, "_", " "))
+
+		views.RenderPage("browse", w, NewPageData(r, title, data))
 	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {

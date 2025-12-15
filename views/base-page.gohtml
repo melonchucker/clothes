@@ -1,5 +1,3 @@
-{{ block "head-extra" . }}{{ end }}
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,12 +21,14 @@
     {{ block "head-extra" . }}{{ end }}
 </head>
 
+
 <body class="min-vh-100 d-flex flex-column">
-    <header class="fixed-top">
+    <header class="fixed-top w-100">
         {{ template "header" . }}
     </header>
 
-    <main class="container mt-5 px-6 pt-5 flex-grow-1">
+    <!-- main grows to fill between header and footer -->
+    <main class="container mt-5 pt-5 flex-grow-1 d-flex flex-column">
         {{ template "content" . }}
     </main>
 

@@ -1,7 +1,7 @@
 {{ define "content" }}
-<div class="container my-4">
+<div class="flex-grow-1 d-flex flex-column">
     <!-- Centered header block using CSS Grid -->
-    <div class="grid">
+    <div class="row">
         <div class="g-col-12 g-col-md-8 g-col-lg-6 mx-auto">
             <h1>Brands</h1>
             <div class="d-flex flex-wrap gap-2">
@@ -13,11 +13,10 @@
     </div>
 
     <!-- Brand sections -->
-    <div class="mt-4 d-flex flex-column gap-4">
+    <div class="row mt-4 d-flex flex-column gap-4">
         {{ range $letter := .Data.Letters }}
         <section>
             <h2 id="{{ $letter }}">{{ $letter }}</h2>
-            <!-- CSS Grid replaces .row + row-cols-* -->
             <div class="grid" style="--bs-gap: 0.75rem;">
                 {{ range $brand := index $.Data $letter }}
                 <a
