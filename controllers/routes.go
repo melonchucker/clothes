@@ -210,6 +210,9 @@ func GetServerMux() http.Handler {
 			Details struct {
 				Description string
 			}
+			Tags         []string
+			MoreOfBrand  widgets.MoreLike
+			SimilarItems widgets.MoreLike
 		}{
 			Brand:    detail.BrandName,
 			ItemName: detail.ItemName,
@@ -227,6 +230,29 @@ func GetServerMux() http.Handler {
 			}{
 				Description: detail.Description,
 			},
+			Tags:         detail.Tags,
+			MoreOfBrand:  widgets.MoreLike{Title: "More from " + detail.BrandName},
+			SimilarItems: widgets.MoreLike{Title: "Similar to this"},
+		}
+		for _, item := range detail.MoreLike.SameBrand {
+			card := widgets.Card{
+				Title:    item.ItemName,
+				Content:  item.BrandName,
+				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
+				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
+				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
+			}
+			data.MoreOfBrand.Items = append(data.MoreOfBrand.Items, card)
+		}
+		for _, item := range detail.MoreLike.SimilarItems {
+			card := widgets.Card{
+				Title:    item.ItemName,
+				Content:  item.BrandName,
+				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
+				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
+				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
+			}
+			data.SimilarItems.Items = append(data.SimilarItems.Items, card)
 		}
 
 		imageUrls := []string{}

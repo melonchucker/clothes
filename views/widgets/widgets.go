@@ -14,6 +14,11 @@ type Card struct {
 	Href     string
 }
 
+type MoreLike struct {
+	Title string
+	Items []Card
+}
+
 type Pageination struct {
 	CurrentPage int
 	TotalPages  int

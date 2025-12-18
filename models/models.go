@@ -28,6 +28,19 @@ type Detail struct {
 		Size    string `json:"size"`
 		InStock bool   `json:"in_stock"`
 	} `json:"item_specific_details"`
+	Tags     []string `json:"tags"`
+	MoreLike struct {
+		SameBrand []struct {
+			ItemName     string `json:"item_name"`
+			BrandName    string `json:"brand_name"`
+			ThumbnailUrl string `json:"thumbnail_url"`
+		} `json:"more_from_brand"`
+		SimilarItems []struct {
+			ItemName     string `json:"item_name"`
+			BrandName    string `json:"brand_name"`
+			ThumbnailUrl string `json:"thumbnail_url"`
+		} `json:"similar_items"`
+	} `json:"more_like"`
 }
 
 type SearchBar struct {

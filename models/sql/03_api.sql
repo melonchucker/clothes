@@ -6,64 +6,208 @@ CREATE FUNCTION api.browse (
     p_include_tags TEXT[] DEFAULT NULL
 ) RETURNS JSONB AS $$
 DECLARE
-    v_items JSONB;
-    v_total_count INTEGER;
-    v_total_pages INTEGER;
-    v_include_tag_ids INTEGER[];
+    v_items            jsonb;
+    v_total_count      integer;
+    v_total_pages      integer;
+
+    v_input_tags_count integer := 0;
+    v_found_tags_count integer := 0;
 BEGIN
-    IF p_include_tags IS NOT NULL THEN
-        v_include_tag_ids := ARRAY(
-            SELECT tag_id FROM tag WHERE name = ANY(COALESCE(p_include_tags, '{}')::citext[])
-        );
+    IF p_page_index IS NULL OR p_page_index < 1 THEN
+        p_page_index := 1;
     END IF;
 
-    v_items := (SELECT COALESCE(
-        jsonb_agg(to_jsonb(bf)),
-        '[]'::jsonb
+    IF p_items_per_page IS NULL OR p_items_per_page < 1 THEN
+        p_items_per_page := 24;
+    END IF;
+
+    WITH
+    input_tags AS (
+        SELECT DISTINCT unnest(COALESCE(p_include_tags, ARRAY[]::text[]))::citext AS tag_name
+    ),
+    input_counts AS (
+        SELECT COUNT(*)::int AS n
+        FROM input_tags
+    ),
+    resolved_tags AS (
+        SELECT t.tag_id
+        FROM tag t
+        JOIN input_tags i ON i.tag_name = t.name  -- assumes tag.name is citext (or comparable)
+    ),
+    resolved_counts AS (
+        SELECT COUNT(*)::int AS n
+        FROM (SELECT DISTINCT tag_id FROM resolved_tags) s
+    ),
+    matched_base_items AS (
+        /*
+          If no tags were provided -> all base_item_ids.
+          Else -> items that have all resolved tags.
+        */
+        SELECT bi.base_item_id
+        FROM base_item bi
+        CROSS JOIN input_counts ic
+        CROSS JOIN resolved_counts rc
+        LEFT JOIN tag_item ti
+               ON ti.base_item_id = bi.base_item_id
+              AND ti.tag_id IN (SELECT tag_id FROM resolved_tags)
+        GROUP BY bi.base_item_id, ic.n, rc.n
+        HAVING
+            (ic.n = 0)                             -- no filter
+            OR (
+                ic.n = rc.n                        -- strict: all input tags must exist
+                AND COUNT(DISTINCT ti.tag_id) = ic.n
+            )
+    ),
+    total AS (
+        SELECT COUNT(*)::int AS total_count
+        FROM matched_base_items
+    ),
+    page AS (
+        SELECT
+            brand.name        AS brand_name,
+            base_item.name    AS item_name,
+            base_item.description,
+            image.url         AS thumbnail_url
+        FROM matched_base_items m
+        JOIN base_item ON base_item.base_item_id = m.base_item_id
+        JOIN brand USING (brand_id)
+        LEFT JOIN image ON base_item.thumbnail_image_id = image.image_id
+        ORDER BY base_item.base_item_id
+        LIMIT p_items_per_page
+        OFFSET (p_page_index - 1) * p_items_per_page
     )
-    FROM (
-        SELECT brand.name AS brand_name,
-               base_item.name AS item_name,
-               description,
-               image.url AS thumbnail_url
-        FROM base_item
-        JOIN brand USING (brand_id)
-        LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
-        WHERE (
-            v_include_tag_ids IS NULL
-            OR (
-            (SELECT COUNT(DISTINCT ti.tag_id)
-             FROM tag_item ti
-             WHERE ti.base_item_id = base_item.base_item_id
-               AND ti.tag_id = ANY (v_include_tag_ids)
-            ) =
-            (SELECT COUNT(DISTINCT t) FROM unnest(v_include_tag_ids) t)
-            )
-        )
-        LIMIT p_items_per_page OFFSET (p_page_index - 1) * p_items_per_page 
-    ) bf);
-    
-    v_total_count := (SELECT COUNT(*)
-            FROM base_item
-        JOIN brand USING (brand_id)
-        LEFT JOIN image ON (base_item.thumbnail_image_id = image.image_id)
-        WHERE (
-            v_include_tag_ids IS NULL
-            OR (
-            (SELECT COUNT(DISTINCT ti.tag_id)
-             FROM tag_item ti
-             WHERE ti.base_item_id = base_item.base_item_id
-               AND ti.tag_id = ANY (v_include_tag_ids)
-            ) =
-            (SELECT COUNT(DISTINCT t) FROM unnest(v_include_tag_ids) t)
-            )
-        )
-);
-    v_total_pages := CEIL(v_total_count::DECIMAL / p_items_per_page);
+    SELECT
+        COALESCE((SELECT jsonb_agg(to_jsonb(page)) FROM page), '[]'::jsonb),
+        (SELECT total_count FROM total),
+        (SELECT n FROM input_counts),
+        (SELECT n FROM resolved_counts)
+    INTO
+        v_items,
+        v_total_count,
+        v_input_tags_count,
+        v_found_tags_count;
+
+    v_total_pages :=
+        CASE
+            WHEN v_total_count = 0 THEN 0
+            ELSE ((v_total_count + p_items_per_page - 1) / p_items_per_page)
+        END;
 
     RETURN jsonb_build_object(
         'total_pages', v_total_pages,
-        'items', v_items
+        'items',       v_items
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.similar_items (
+    p_base_item_name CITEXT,
+    p_brand_name CITEXT,
+    p_limit INTEGER
+) RETURNS JSONB LANGUAGE sql STABLE AS $$
+WITH seed AS (
+    SELECT bi.base_item_id
+    FROM base_item bi
+    JOIN brand b ON b.brand_id = bi.brand_id
+    WHERE bi.name = p_base_item_name
+      AND b.name  = p_brand_name
+    LIMIT 1
+),
+seed_tags AS (
+    SELECT ti.tag_id
+    FROM tag_item ti
+    JOIN seed s ON s.base_item_id = ti.base_item_id
+),
+scored AS (
+    SELECT
+        bi.base_item_id,
+        bi.name AS item_name,
+        b.name  AS brand_name,
+        img.url AS thumbnail_url,
+        COUNT(*)::INT AS shared_tag_count
+    FROM seed s
+    JOIN seed_tags st ON TRUE
+    JOIN tag_item ti2
+      ON ti2.tag_id = st.tag_id
+     AND ti2.base_item_id <> s.base_item_id
+    JOIN base_item bi
+      ON bi.base_item_id = ti2.base_item_id
+    LEFT JOIN brand b
+      ON b.brand_id = bi.brand_id
+    LEFT JOIN image img
+      ON img.image_id = bi.thumbnail_image_id
+    GROUP BY
+        bi.base_item_id, bi.name, b.name, img.url
+)
+SELECT COALESCE(
+    jsonb_agg(
+        jsonb_build_object(
+            'item_name', item_name,
+            'brand_name', brand_name,
+            'thumbnail_url', thumbnail_url
+        )
+        ORDER BY
+            shared_tag_count DESC,
+            item_name ASC
+    ),
+    '[]'::jsonb
+)
+FROM (
+    SELECT item_name, brand_name, thumbnail_url, shared_tag_count
+    FROM scored
+    ORDER BY
+        shared_tag_count DESC,
+        item_name ASC
+    LIMIT GREATEST(p_limit, 0)
+) t;
+$$;
+
+CREATE OR REPLACE FUNCTION api.more_from_brand (
+    p_base_item_name CITEXT,
+    p_brand_name CITEXT,
+    p_limit INTEGER DEFAULT 4
+) RETURNS JSONB LANGUAGE sql STABLE AS $$
+SELECT COALESCE(
+    jsonb_agg(
+        jsonb_build_object(
+            'item_name',      item_name,
+            'brand_name',     brand_name,
+            'thumbnail_url',  thumbnail_url
+        )
+        ORDER BY item_name
+    ),
+    '[]'::jsonb
+)
+FROM (
+    SELECT
+        bi.name AS item_name,
+        b.name  AS brand_name,
+        img.url AS thumbnail_url
+    FROM base_item bi
+    JOIN brand b USING (brand_id)
+    LEFT JOIN image img
+        ON img.image_id = bi.thumbnail_image_id
+    WHERE bi.name <> p_base_item_name
+      AND b.name  = p_brand_name
+    ORDER BY bi.name
+    LIMIT GREATEST(p_limit, 0)
+) t;
+$$;
+
+CREATE FUNCTION api.more_like (
+    p_base_item_name CITEXT,
+    p_brand_name CITEXT,
+    p_limit INTEGER DEFAULT 4
+) RETURNS JSONB AS $$
+DECLARE
+    v_similar_items JSONB;
+    v_more_from_brand JSONB;
+BEGIN
+    v_similar_items := api.similar_items(p_base_item_name, p_brand_name, p_limit);
+    v_more_from_brand := api.more_from_brand(p_base_item_name, p_brand_name, p_limit);
+    RETURN jsonb_build_object(
+        'similar_items', v_similar_items,
+        'more_from_brand', v_more_from_brand
     );
 END;
 $$ LANGUAGE plpgsql;
@@ -203,7 +347,8 @@ BEGIN
         'description', v_description,
         'image_urls', v_image_urls,
         'rating', v_rating,
-        'item_specific_details', v_item_specific_details
+        'item_specific_details', v_item_specific_details,
+        'more_like', api.more_like(p_base_item_name, v_brand_name, 4)
     );
 END;
 $$ LANGUAGE plpgsql;
@@ -266,10 +411,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.site_user_authenticate (
-    p_email CITEXT,
-    p_password TEXT
-) RETURNS TEXT AS $$
+CREATE FUNCTION api.site_user_authenticate (p_email CITEXT, p_password TEXT) RETURNS TEXT AS $$
 DECLARE
     v_password_hash TEXT;
     v_valid_password BOOLEAN;
@@ -303,9 +445,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.user_validate_session (
-    p_session_token TEXT
-) RETURNS JSONB AS $$
+CREATE FUNCTION api.user_validate_session (p_session_token TEXT) RETURNS JSONB AS $$
 DECLARE
     v_site_user_id INTEGER;
     v_count INTEGER;
@@ -335,9 +475,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.user_signout (
-    p_session_token TEXT
-) RETURNS VOID AS $$
+CREATE FUNCTION api.user_signout (p_session_token TEXT) RETURNS VOID AS $$
 BEGIN
     DELETE FROM session
     WHERE session_token = p_session_token;
