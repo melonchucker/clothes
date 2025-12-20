@@ -2,6 +2,7 @@ package views
 
 import (
 	"clothes/models"
+	"clothes/views/widgets"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 )
 
 type PageData struct {
+	Alert    *widgets.Alert
 	SiteUser *models.SiteUser
 	Title    string
 	Data     any

@@ -6,6 +6,21 @@ import (
 	"net/url"
 )
 
+type AlertLevel string
+
+const (
+	AlertLevelPrimary AlertLevel = "alert-primary"
+	AlertLevelInfo    AlertLevel = "alert-info"
+	AlertLevelSuccess AlertLevel = "alert-success"
+	AlertLevelWarning AlertLevel = "alert-warning"
+	AlertLevelDanger  AlertLevel = "alert-danger"
+)
+
+type Alert struct {
+	Message string
+	Level   AlertLevel
+}
+
 type Card struct {
 	Title    string
 	Content  string

@@ -12510,5 +12510,34 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+.alert-primary {
+  --bs-alert-bg: rgb(239.5, 223.5, 212.5);
+  --bs-alert-color: rgb(89.6, 76.8, 68);
+  --bs-alert-border-color: rgb(179.2, 153.6, 136);
+}
+
+.alert-success {
+  --bs-alert-bg: rgb(224.5, 233, 225.5);
+  --bs-alert-color: rgb(77.6, 84.4, 78.4);
+  --bs-alert-border-color: rgb(155.2, 168.8, 156.8);
+}
+
+.alert-info {
+  --bs-alert-bg: rgb(218.5, 228, 236.5);
+  --bs-alert-color: rgb(72.8, 80.4, 87.2);
+  --bs-alert-border-color: rgb(145.6, 160.8, 174.4);
+}
+
+.alert-warning {
+  --bs-alert-bg: rgb(240.5, 227.5, 209.5);
+  --bs-alert-color: rgb(90.4, 80, 65.6);
+  --bs-alert-border-color: rgb(180.8, 160, 131.2);
+}
+
+.alert-danger {
+  --bs-alert-bg: #dbbdbd;
+  --bs-alert-color: rgb(73.2, 49.2, 49.2);
+  --bs-alert-border-color: rgb(146.4, 98.4, 98.4);
+}
 
 /*# sourceMappingURL=style.css.map */

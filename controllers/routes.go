@@ -10,15 +10,43 @@ import (
 	"strings"
 )
 
-func NewPageData(r *http.Request, title string, data any) views.PageData {
+func NewPageData(w http.ResponseWriter, r *http.Request, title string, data any) views.PageData {
 	slog.Info("Creating PageData for", "title", title)
 	pd := views.PageData{
 		Title: title,
 		Data:  data,
 	}
 
-	c, err := r.Cookie("session_token")
+	c, err := r.Cookie("alert")
+	if err == nil && c.Value != "" {
+		fmt.Println("Alert cookie value:", c.Value)
+		pd.Alert = &widgets.Alert{
+			Message: c.Value,
+			Level:   widgets.AlertLevelDanger,
+		}
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "alert",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		MaxAge:   -1,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	c, err = r.Cookie("session_token")
 	if err != nil || c.Value == "" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    "",
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+			MaxAge:   -1,
+			SameSite: http.SameSiteLaxMode,
+		})
+
 		return pd
 	}
 
@@ -35,7 +63,7 @@ func GetAuthenticatedServerMux() http.Handler {
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("AuthentHicated request to /account/")
-		views.RenderPage("account", w, NewPageData(r, "Account", nil))
+		views.RenderPage("account", w, NewPageData(w, r, "Account", nil))
 	})
 
 	return authenticateMiddleware(mux)
@@ -48,12 +76,11 @@ func GetServerMux() http.Handler {
 	mux.Handle("/account/", http.StripPrefix("/account", GetAuthenticatedServerMux()))
 
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("home", w, NewPageData(r, "Home", nil))
+		views.RenderPage("home", w, NewPageData(w, r, "Home", nil))
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	// hello world
 	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
 		// TODO
 	})
@@ -65,7 +92,7 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		views.RenderPage("brands", w, NewPageData(r, "Brands", brands))
+		views.RenderPage("brands", w, NewPageData(w, r, "Brands", brands))
 	})
 
 	mux.HandleFunc("GET /browse/{top_level_tag}", func(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +156,7 @@ func GetServerMux() http.Handler {
 
 		title := strings.Title(strings.ReplaceAll(topLevelTag, "_", " "))
 
-		views.RenderPage("browse", w, NewPageData(r, title, data))
+		views.RenderPage("browse", w, NewPageData(w, r, title, data))
 	})
 
 	mux.HandleFunc("GET /clothes", func(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +212,7 @@ func GetServerMux() http.Handler {
 			},
 		}
 
-		views.RenderPage("browse", w, NewPageData(r, "Clothes", data))
+		views.RenderPage("browse", w, NewPageData(w, r, "Clothes", data))
 	})
 
 	mux.HandleFunc("GET /item/{brand_name}/{base_item_name}", func(w http.ResponseWriter, r *http.Request) {
@@ -261,11 +288,11 @@ func GetServerMux() http.Handler {
 		}
 		data.ImageUrls = imageUrls
 
-		views.RenderPage("detail", w, NewPageData(r, detail.ItemName, data))
+		views.RenderPage("detail", w, NewPageData(w, r, detail.ItemName, data))
 	})
 
 	mux.HandleFunc("GET /sign-in", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("sign-in", w, NewPageData(r, "Sign In", nil))
+		views.RenderPage("sign-in", w, NewPageData(w, r, "Sign In", nil))
 	})
 
 	mux.HandleFunc("POST /sign-in", func(w http.ResponseWriter, r *http.Request) {
@@ -277,13 +304,18 @@ func GetServerMux() http.Handler {
 		password := r.FormValue("password")
 
 		session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
-		if err != nil {
+		if err != nil || session == nil {
 			slog.Error("Error signing in user", "error", err)
-			http.Error(w, "Error signing in user", http.StatusInternalServerError)
-			return
-		}
-		if session == nil {
-			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			http.SetCookie(w, &http.Cookie{
+				Name:     "alert",
+				Value:    "Error signing in user",
+				HttpOnly: true,
+				Secure:   true,
+				Path:     "/",
+				SameSite: http.SameSiteLaxMode,
+			})
+			// redirect to sign-in
+			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
 
@@ -300,7 +332,7 @@ func GetServerMux() http.Handler {
 	})
 
 	mux.HandleFunc("GET /sign-up", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("sign-up", w, NewPageData(r, "Sign Up", nil))
+		views.RenderPage("sign-up", w, NewPageData(w, r, "Sign Up", nil))
 	})
 
 	mux.HandleFunc("POST /sign-up", func(w http.ResponseWriter, r *http.Request) {
@@ -368,7 +400,7 @@ func GetServerMux() http.Handler {
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		views.RenderPage("404", w, NewPageData(r, "Page Not Found", nil))
+		views.RenderPage("404", w, NewPageData(w, r, "Page Not Found", nil))
 	}))
 
 	return loggingMiddleware(gzipMiddleware(mux))

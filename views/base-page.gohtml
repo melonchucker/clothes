@@ -21,10 +21,13 @@
     {{ block "head-extra" . }}{{ end }}
 </head>
 
-
 <body class="min-vh-100 d-flex flex-column">
     <header class="fixed-top w-100">
         {{ template "header" . }}
+
+        {{ if .Alert }}
+        {{ template "alert" .Alert }}
+        {{ end }}
     </header>
 
     <!-- main grows to fill between header and footer -->

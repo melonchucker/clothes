@@ -359,3 +359,38 @@ small.text-uppercase {
 $enable-cssgrid: true;
 
 @import "./node_modules/bootstrap/scss/bootstrap";
+
+// BEGIN KLUDGE
+// This overrides Bootstrap alert colors to match Luxe design system
+// I should figure out a way to override this before I import the resto of Bootstrap
+
+.alert-primary {
+  --bs-alert-bg: #{mix(#fff, $primary, 50%)};
+  --bs-alert-color: #{shade-color($primary, 60%)};
+  --bs-alert-border-color:  #{shade-color($primary, 20%)};
+}
+
+.alert-success {
+  --bs-alert-bg: #{mix(#fff, $success, 50%)};
+  --bs-alert-color: #{shade-color($success, 60%)};
+  --bs-alert-border-color: #{shade-color($success, 20%)};
+}
+
+.alert-info {
+  --bs-alert-bg: #{mix(#fff, $info, 50%)};
+  --bs-alert-color: #{shade-color($info, 60%)};
+  --bs-alert-border-color: #{shade-color($info, 20%)};
+}
+
+.alert-warning {
+  --bs-alert-bg: #{mix(#fff, $warning, 50%)};
+  --bs-alert-color: #{shade-color($warning, 60%)};
+  --bs-alert-border-color: #{shade-color($warning, 20%)};
+}
+
+.alert-danger {
+  --bs-alert-bg: #{mix(#fff, $danger, 50%)};
+  --bs-alert-color: #{shade-color($danger, 60%)};
+  --bs-alert-border-color: #{shade-color($danger, 20%)};
+}
+
