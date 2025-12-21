@@ -150,6 +150,8 @@ func scrapeFashionPass() {
 	q.Set("page", "1")
 	u.RawQuery = q.Encode()
 
+	fmt.Println("Visiting", u.String())
+
 	err := apiC.Visit(u.String())
 	if err != nil {
 		slog.Error("Error visiting site", "error", err)

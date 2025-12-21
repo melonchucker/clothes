@@ -17,25 +17,15 @@ func NewPageData(w http.ResponseWriter, r *http.Request, title string, data any)
 		Data:  data,
 	}
 
-	c, err := r.Cookie("alert")
-	if err == nil && c.Value != "" {
-		fmt.Println("Alert cookie value:", c.Value)
+	a, err := getAndClearAlertCookie(r, w)
+	if err == nil && a != nil {
 		pd.Alert = &widgets.Alert{
-			Message: c.Value,
-			Level:   widgets.AlertLevelDanger,
+			Message: a.Message,
+			Level:   (widgets.AlertLevel)(a.Level),
 		}
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "alert",
-		Value:    "",
-		HttpOnly: true,
-		Secure:   true,
-		Path:     "/",
-		MaxAge:   -1,
-		SameSite: http.SameSiteLaxMode,
-	})
 
-	c, err = r.Cookie("session_token")
+	c, err := r.Cookie("session_token")
 	if err != nil || c.Value == "" {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
@@ -306,15 +296,7 @@ func GetServerMux() http.Handler {
 		session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
 		if err != nil || session == nil {
 			slog.Error("Error signing in user", "error", err)
-			http.SetCookie(w, &http.Cookie{
-				Name:     "alert",
-				Value:    "Error signing in user",
-				HttpOnly: true,
-				Secure:   true,
-				Path:     "/",
-				SameSite: http.SameSiteLaxMode,
-			})
-			// redirect to sign-in
+			setAlertCookie(w, widgets.AlertLevelInfo, "Invalid email or password")
 			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
@@ -348,18 +330,8 @@ func GetServerMux() http.Handler {
 
 		session, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
 		if err != nil {
-			slog.Error("Error signing up user", "error", err)
-			http.Error(w, "Error signing up user", http.StatusInternalServerError)
-			return
-		}
-
-		if err != nil {
-			slog.Error("Error signing in user", "error", err)
-			http.Error(w, "Error signing in user", http.StatusInternalServerError)
-			return
-		}
-		if session == nil {
-			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			setAlertCookie(w, widgets.AlertLevelDanger, "Error signing up user")
+			http.Redirect(w, r, "/sign-up", http.StatusSeeOther)
 			return
 		}
 
