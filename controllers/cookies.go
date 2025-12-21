@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"clothes/models"
 	"clothes/views/widgets"
 	"encoding/base64"
 	"encoding/json"
@@ -59,7 +60,14 @@ func ClearCookie(w http.ResponseWriter, name string) {
 	})
 }
 
-func getAndClearAlertCookie(r *http.Request, w http.ResponseWriter) (*alert, error) {
+func setAlert(w http.ResponseWriter, alertType widgets.AlertLevel, alertMessage string) error {
+	return EncodeJSONCookie(w, alertCookieName, &alert{
+		Level:   alertType,
+		Message: alertMessage,
+	})
+}
+
+func getAndClearAlert(r *http.Request, w http.ResponseWriter) (*alert, error) {
 	a, err := DecodeJSONCookie[alert](r, alertCookieName)
 	if err != nil {
 		return nil, err
@@ -77,9 +85,46 @@ func getAndClearAlertCookie(r *http.Request, w http.ResponseWriter) (*alert, err
 	}, nil
 }
 
-func setAlertCookie(w http.ResponseWriter, alertType widgets.AlertLevel, alertMessage string) error {
-	return EncodeJSONCookie(w, alertCookieName, &alert{
-		Level:   alertType,
-		Message: alertMessage,
+func setSession(r *http.Request, w http.ResponseWriter, email string, password string) error {
+	session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
+	if err != nil {
+		return err
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    *session,
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
 	})
+	return nil
+}
+
+func clearSession(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func getSession(w http.ResponseWriter, r *http.Request) (*models.SiteUser, error) {
+	c, err := r.Cookie(sessionCookieName)
+	if err != nil {
+		return nil, err
+	}
+
+	siteUser, err := models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
+	if err != nil {
+		clearSession(w)
+		return nil, err
+	}
+
+	return siteUser, nil
 }

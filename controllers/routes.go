@@ -17,7 +17,7 @@ func NewPageData(w http.ResponseWriter, r *http.Request, title string, data any)
 		Data:  data,
 	}
 
-	a, err := getAndClearAlertCookie(r, w)
+	a, err := getAndClearAlert(r, w)
 	if err == nil && a != nil {
 		pd.Alert = &widgets.Alert{
 			Message: a.Message,
@@ -296,7 +296,7 @@ func GetServerMux() http.Handler {
 		session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
 		if err != nil || session == nil {
 			slog.Error("Error signing in user", "error", err)
-			setAlertCookie(w, widgets.AlertLevelInfo, "Invalid email or password")
+			setAlert(w, widgets.AlertLevelInfo, "Invalid email or password")
 			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
@@ -330,7 +330,7 @@ func GetServerMux() http.Handler {
 
 		session, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
 		if err != nil {
-			setAlertCookie(w, widgets.AlertLevelDanger, "Error signing up user")
+			setAlert(w, widgets.AlertLevelDanger, "Error signing up user")
 			http.Redirect(w, r, "/sign-up", http.StatusSeeOther)
 			return
 		}
