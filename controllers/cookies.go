@@ -102,7 +102,19 @@ func setSession(r *http.Request, w http.ResponseWriter, email string, password s
 	return nil
 }
 
-func clearSession(w http.ResponseWriter) {
+func clearSession(w http.ResponseWriter, r *http.Request) error {
+	c, err := r.Cookie(sessionCookieName)
+	if err == http.ErrNoCookie {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	_, err = models.ApiQuery[string](r.Context(), "user_signout", c.Value)
+	if err != nil {
+		panic(err)
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",
@@ -112,6 +124,7 @@ func clearSession(w http.ResponseWriter) {
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
 	})
+	return nil
 }
 
 func getSession(w http.ResponseWriter, r *http.Request) (*models.SiteUser, error) {
@@ -122,7 +135,7 @@ func getSession(w http.ResponseWriter, r *http.Request) (*models.SiteUser, error
 
 	siteUser, err := models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
 	if err != nil {
-		clearSession(w)
+		clearSession(w, r)
 		return nil, err
 	}
 

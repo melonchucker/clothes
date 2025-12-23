@@ -4,9 +4,9 @@
 $lux-bg:              #faf7f2;  // page background (soft ivory)
 $lux-surface:         #ffffff;  // cards / modals
 $lux-ink:             #22201d;  // main text
-$lux-muted:           #6d6459;  // secondary text
+$lux-muted:           #5e5954;  // secondary text
 
-$lux-primary:         #e0c0aa;   // modern terracotta (warm + classy)
+$lux-primary:         #e0baa1;   // modern terracotta (warm + classy)
 $lux-primary-soft:    #eee3dd;   // pale clay wash (hover, backgrounds)
 $lux-primary-strong:  #b87349;   // strong clay for emphasis
 
@@ -316,12 +316,6 @@ small.text-uppercase {
 .alert {
   border-radius: $lux-radius-soft;
   border-color: $lux-border-subtle;
-}
-
-.alert-primary {
-  color: $lux-primary-strong;
-  background-color: #f3ece2;
-  border-color: #e4d6c3;
 }
 
 // Modals & dropdowns

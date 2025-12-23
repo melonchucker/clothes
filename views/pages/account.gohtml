@@ -1,3 +1,242 @@
 {{ define "content" }}
-<div>Hello account</div>
+
+<!-- ACCOUNT HERO -->
+<section class="py-5 py-lg-6 mb-4" style="
+      background: radial-gradient(circle at top left, rgba(255, 214, 165, 0.85), transparent 55%),
+                  radial-gradient(circle at top right, rgba(255, 180, 220, 0.8), transparent 55%),
+                  linear-gradient(135deg, #fff8f2, #fef6ff);
+    ">
+    <div class="container">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+            <div>
+                <p class="small text-uppercase text-secondary mb-1">Your account</p>
+                <h1 class="display-6 fw-bold mb-2">
+                    Welcome back, {{ .SiteUser.FirstName }}.
+                </h1>
+                <p class="text-muted mb-0">
+                    Manage your membership, deliveries, and account details.
+                </p>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <a href="/browse" class="btn btn-primary btn-lg px-4">
+                    Start styling
+                </a>
+                <form method="post" action="/logout" class="m-0">
+                    <button type="submit" class="btn btn-outline-secondary btn-lg px-4">
+                        Sign out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-4">
+
+                <!-- PROFILE CARD -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center"
+                                 style="width: 52px; height: 52px;">
+                                <span class="fw-semibold text-secondary">
+                                    {{ printf "%.1s%.1s" .SiteUser.FirstName .SiteUser.LastName }}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">
+                                    {{ .SiteUser.FirstName }} {{ .SiteUser.LastName }}
+                                </div>
+                                <div class="small text-muted">
+                                    {{ .SiteUser.Email }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {{ if .SiteUser.IsAdmin }}
+                                <span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis px-3 py-2">
+                                    Admin
+                                </span>
+                            {{ else if .SiteUser.IsStaff }}
+                                <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis px-3 py-2">
+                                    Staff
+                                </span>
+                            {{ else }}
+                                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                                    Member
+                                </span>
+                            {{ end }}
+
+                            <span class="badge rounded-pill text-bg-success-subtle text-success-emphasis px-3 py-2">
+                                Active
+                            </span>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-grid gap-2">
+                            <a href="/account/profile" class="btn btn-outline-secondary">
+                                Edit profile
+                            </a>
+                            <a href="/account/security" class="btn btn-outline-secondary">
+                                Login & security
+                            </a>
+                            <a href="/account/addresses" class="btn btn-outline-secondary">
+                                Addresses
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MEMBERSHIP (DUMMY) -->
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                    <div class="card-body p-4">
+                        <h2 class="h6 fw-semibold mb-1">Membership</h2>
+                        <p class="small text-muted mb-3">
+                            Current plan and perks
+                        </p>
+
+                        <div class="small">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Plan</span>
+                                <span class="fw-semibold">Essential (Demo)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span class="text-muted">Next billing</span>
+                                <span class="fw-semibold">April 15, 2025</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span class="text-muted">Shipping</span>
+                                <span class="fw-semibold">Same-day eligible</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/pricing" class="btn btn-primary">
+                                Manage membership
+                            </a>
+                            <a href="/help" class="btn btn-outline-secondary">
+                                Help & support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-lg-8">
+
+                <!-- CURRENT ORDER (DUMMY) -->
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-body p-4 p-lg-5">
+
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+                            <div>
+                                <p class="small text-uppercase text-secondary mb-1">In progress</p>
+                                <h2 class="h4 fw-bold mb-1">Your current shipment</h2>
+                                <p class="text-muted mb-0">
+                                    Track delivery and return status.
+                                </p>
+                            </div>
+                            <a href="/account/orders" class="small text-decoration-none">
+                                View all orders →
+                            </a>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-7">
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <span class="badge text-bg-primary-subtle text-primary-emphasis">
+                                        Order #FP-123456
+                                    </span>
+                                    <span class="badge text-bg-light text-dark">
+                                        Out for delivery
+                                    </span>
+                                    <span class="badge text-bg-warning-subtle text-warning-emphasis">
+                                        Same-day
+                                    </span>
+                                </div>
+
+                                <div class="small text-muted">
+                                    <div>
+                                        <span class="fw-semibold text-dark">Delivery:</span>
+                                        Today · 4–8 PM
+                                    </div>
+                                    <div class="mt-1">
+                                        <span class="fw-semibold text-dark">Return by:</span>
+                                        March 28, 2025
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="d-grid gap-2">
+                                    <a href="#" class="btn btn-primary">
+                                        Track shipment
+                                    </a>
+                                    <a href="#" class="btn btn-outline-secondary">
+                                        Start a return
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RECENT ORDERS (DUMMY) -->
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-semibold mb-3">Recent orders</h2>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr class="small text-muted">
+                                        <th>Order</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold">#FP-123102</td>
+                                        <td class="small text-muted">Mar 2, 2025</td>
+                                        <td>
+                                            <span class="badge text-bg-light text-dark">Returned</span>
+                                        </td>
+                                        <td class="text-end fw-semibold">$59</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold">#FP-122884</td>
+                                        <td class="small text-muted">Feb 18, 2025</td>
+                                        <td>
+                                            <span class="badge text-bg-light text-dark">Completed</span>
+                                        </td>
+                                        <td class="text-end fw-semibold">$49</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
 {{ end }}

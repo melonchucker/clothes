@@ -11,7 +11,6 @@ import (
 )
 
 func NewPageData(w http.ResponseWriter, r *http.Request, title string, data any) views.PageData {
-	slog.Info("Creating PageData for", "title", title)
 	pd := views.PageData{
 		Title: title,
 		Data:  data,
@@ -25,26 +24,10 @@ func NewPageData(w http.ResponseWriter, r *http.Request, title string, data any)
 		}
 	}
 
-	c, err := r.Cookie("session_token")
-	if err != nil || c.Value == "" {
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    "",
-			HttpOnly: true,
-			Secure:   true,
-			Path:     "/",
-			MaxAge:   -1,
-			SameSite: http.SameSiteLaxMode,
-		})
-
-		return pd
-	}
-
-	pd.SiteUser, err = models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
+	pd.SiteUser, err = getSession(w, r)
 	if err != nil {
-		slog.Error("Error validating session token", "error", err)
+		clearSession(w, r)
 	}
-
 	return pd
 }
 
@@ -52,7 +35,7 @@ func GetAuthenticatedServerMux() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("AuthentHicated request to /account/")
+		slog.Info("Authenticated request to /account/")
 		views.RenderPage("account", w, NewPageData(w, r, "Account", nil))
 	})
 
@@ -293,22 +276,13 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		session, err := models.ApiQuery[string](r.Context(), "site_user_authenticate", email, password)
-		if err != nil || session == nil {
+		err := setSession(r, w, email, password)
+		if err != nil {
 			slog.Error("Error signing in user", "error", err)
-			setAlert(w, widgets.AlertLevelInfo, "Invalid email or password")
+			setAlert(w, widgets.AlertLevelDanger, "Incorrect email or password")
 			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 			return
 		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    *session,
-			HttpOnly: true,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-		})
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
@@ -328,45 +302,23 @@ func GetServerMux() http.Handler {
 		email := r.FormValue("email")
 		password := r.FormValue("password")
 
-		session, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
+		_, err := models.ApiQuery[string](r.Context(), "site_user_signup", firstName, lastName, username, email, password)
 		if err != nil {
 			setAlert(w, widgets.AlertLevelDanger, "Error signing up user")
 			http.Redirect(w, r, "/sign-up", http.StatusSeeOther)
 			return
 		}
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    *session,
-			HttpOnly: true,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteLaxMode,
-		})
+		err = setSession(r, w, email, password)
+		if err != nil {
+			panic(err)
+		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
 	mux.HandleFunc("GET /sign-out", func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie("session_token")
-		if err != nil || c.Value == "" {
-			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
-			return
-		}
-
-		_, err = models.ApiQuery[string](r.Context(), "user_signout", c.Value)
-		if err != nil {
-			slog.Error("Error signing out user", "error", err)
-			http.Error(w, "Error signing out user", http.StatusInternalServerError)
-			return
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    "",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		clearSession(w, r)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 

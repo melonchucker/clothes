@@ -60,7 +60,6 @@ func authenticateMiddleware(next http.Handler) http.Handler {
 		siteUser, err := models.ApiQuery[models.SiteUser](r.Context(), "user_validate_session", c.Value)
 		if err != nil {
 			slog.Error("Error validating session token", "error", err)
-			// delete cookie
 			http.SetCookie(w, &http.Cookie{
 				Name:   "session_token",
 				Value:  "",
