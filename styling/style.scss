@@ -1,94 +1,92 @@
 @import "./node_modules/bootstrap/scss/functions";
 
 // 1. Luxe design tokens (your "brand system")
-$lux-bg:              #faf7f2;  // page background (soft ivory)
-$lux-surface:         #ffffff;  // cards / modals
-$lux-ink:             #22201d;  // main text
-$lux-muted:           #5e5954;  // secondary text
+$lux-bg: #faf7f2; // page background (soft ivory)
+$lux-surface: #ffffff; // cards / modals
+$lux-ink: #22201d; // main text
+$lux-muted: #5e5954; // secondary text
 
-$lux-primary:         #e0baa1;   // modern terracotta (warm + classy)
-$lux-primary-soft:    #eee3dd;   // pale clay wash (hover, backgrounds)
-$lux-primary-strong:  #b87349;   // strong clay for emphasis
+$lux-primary: #e0baa1; // modern terracotta (warm + classy)
+$lux-primary-soft: #eee3dd; // pale clay wash (hover, backgrounds)
+$lux-primary-strong: #b87349; // strong clay for emphasis
 
-$lux-accent:          #4f5a63;  // slate accent
-$lux-border-subtle:   rgba(#000, 0.08);
-$lux-shadow-soft:     0 18px 45px rgba(15, 10, 5, 0.08);
+$lux-accent: #4f5a63; // slate accent
+$lux-border-subtle: rgba(#000, 0.08);
+$lux-shadow-soft: 0 18px 45px rgba(15, 10, 5, 0.08);
 
-$lux-radius-soft:     0rem;
-$lux-radius-pill:     999px;
+$lux-radius-soft: 0rem;
+$lux-radius-pill: 999px;
 
 // slightly snappier transition than default
-$transition-base:     all 0.12s ease-out !default;
-
+$transition-base: all 0.12s ease-out !default;
 
 // 2. Map tokens → Bootstrap core variables
 // ----------------------------------------
 
 // Color system
-$primary:   $lux-primary;
+$primary: $lux-primary;
 $secondary: $lux-muted;
-$success:   #c2d3c4;
-$info:      #b6c9da;
-$warning:   #e2c8a4;
-$danger:    #b77b7b;
-$light:     #f9f5ee;
-$dark:      #151310;
+$success: #c2d3c4;
+$info: #b6c9da;
+$warning: #e2c8a4;
+$danger: #b77b7b;
+$light: #f9f5ee;
+$dark: #151310;
 
 // Body
-$body-bg:   $lux-bg;
-$body-color:$lux-ink;
+$body-bg: $lux-bg;
+$body-color: $lux-ink;
 
 // Typography
-$font-family-sans-serif: "Exo 2", system-ui, -apple-system, "Segoe UI",
-                         Roboto, "Helvetica Neue", Arial, sans-serif !default;
-$font-family-base:       $font-family-sans-serif;
+$font-family-sans-serif: "Exo 2", system-ui, -apple-system, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, sans-serif !default;
+$font-family-base: $font-family-sans-serif;
 
-$headings-font-family:   "Playfair Display", "Times New Roman", serif;
-$headings-font-weight:   500;
-$headings-color:         $lux-ink;
+$headings-font-family: "Playfair Display", "Times New Roman", serif;
+$headings-font-weight: 500;
+$headings-color: $lux-ink;
 
 // Links
-$link-color:            $lux-accent;
-$link-decoration:       none;
-$link-hover-color:      #3f4a52;
+$link-color: $lux-accent;
+$link-decoration: none;
+$link-hover-color: #3f4a52;
 $link-hover-decoration: none;
 
 // Radius / borders
-$border-color:        $lux-border-subtle;
-$border-radius:       $lux-radius-soft;
-$border-radius-sm:    0.1rem;
-$border-radius-lg:    0.1rem;
-$border-radius-xl:    0.14rem;
-$border-radius-xxl:   0.2rem;
-$border-radius-pill:  $lux-radius-pill;
+$border-color: $lux-border-subtle;
+$border-radius: $lux-radius-soft;
+$border-radius-sm: 0.1rem;
+$border-radius-lg: 0.1rem;
+$border-radius-xl: 0.14rem;
+$border-radius-xxl: 0.2rem;
+$border-radius-pill: $lux-radius-pill;
 
 // Shadows
-$box-shadow:    $lux-shadow-soft;
+$box-shadow: $lux-shadow-soft;
 $box-shadow-sm: 0 8px 24px rgba(15, 10, 5, 0.05);
 $box-shadow-lg: 0 26px 60px rgba(15, 10, 5, 0.1);
 
 // Buttons
-$btn-font-weight:     500;
-$btn-border-radius:   $border-radius;
-$btn-border-radius-sm:$border-radius-sm;
-$btn-border-radius-lg:$border-radius-lg;
+$btn-font-weight: 500;
+$btn-border-radius: $border-radius;
+$btn-border-radius-sm: $border-radius-sm;
+$btn-border-radius-lg: $border-radius-lg;
 
 // Cards
-$card-bg:            $lux-surface;
-$card-border-color:  $lux-border-subtle;
+$card-bg: $lux-surface;
+$card-border-color: $lux-border-subtle;
 $card-border-radius: $lux-radius-soft;
-$card-box-shadow:    $lux-shadow-soft;
+$card-box-shadow: $lux-shadow-soft;
 
 // Forms / inputs
-$input-bg:              $lux-surface;
-$input-border-color:    $lux-border-subtle;
-$form-select-bg:        $lux-surface;
+$input-bg: $lux-surface;
+$input-border-color: $lux-border-subtle;
+$form-select-bg: $lux-surface;
 $form-select-border-color: $input-border-color;
 
 // Navbar
-$navbar-padding-y:        0.9rem;
-$navbar-brand-font-size:  1.75rem;
-
+$navbar-padding-y: 0.9rem;
+$navbar-brand-font-size: 1.75rem;
 
 body {
   padding-top: 60px; // space for fixed navbar
@@ -110,7 +108,12 @@ a {
 }
 
 // headings (all)
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: $headings-font-family;
   letter-spacing: 0.03em;
   text-transform: none;
@@ -228,6 +231,133 @@ small.text-uppercase {
   }
 }
 
+// Two-row fixed header height
+// (Adjust these values if you change paddings/font sizes.)
+:root {
+  --site-header-height: 112px; // mobile-ish default
+}
+
+@media (min-width: 992px) {
+  // lg
+  :root {
+    --site-header-height: 120px;
+  }
+}
+
+body {
+  padding-top: var(--site-header-height);
+}
+
+// Header structure
+.site-header {
+  .navbar-top {
+    position: relative;
+    z-index: 1050; // above the second row
+    background-color: rgba(247, 243, 236, 0.86);
+    border-bottom: 1px solid $lux-border-subtle;
+    backdrop-filter: blur(10px);
+  }
+
+  // second row different color
+  .navbar-cats {
+    position: relative;
+    z-index: 1040; // below the dropdown/top row
+    background-color: rgba(34, 32, 29, 0.96); // "ink" dark
+    border-bottom: 1px solid rgba(#fff, 0.08);
+  }
+
+  // Top row layout: 3 columns on desktop (search | brand | actions)
+  .topbar-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 56px;
+  }
+
+  @media (min-width: 992px) {
+    .topbar-inner {
+      grid-template-columns: 1fr auto 1fr; // desktop: search | brand | actions
+      column-gap: 1rem;
+    }
+
+    .topbar-search {
+      justify-self: start;
+      max-width: 520px;
+    }
+
+    .topbar-actions {
+      justify-self: end;
+    }
+  }
+
+  .topbar-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+
+    font-family: $headings-font-family;
+    font-weight: 200;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 1.65rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  // Make the toggler match your aesthetic a bit better
+  .topbar-toggle {
+    color: $lux-ink;
+    text-decoration: none;
+
+    .navbar-toggler-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .topbar-cart {
+    justify-self: end;
+    color: $lux-ink;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+  }
+
+  // Offcanvas styling to match Luxe
+  .site-offcanvas {
+    background-color: $lux-surface;
+    color: $lux-ink;
+
+    .offcanvas-title {
+      font-family: $headings-font-family;
+      letter-spacing: 0.06em;
+    }
+
+    .nav-link {
+      color: $lux-ink;
+
+      &:hover,
+      &:focus {
+        color: $lux-primary-strong;
+      }
+    }
+  }
+
+  // Search input spacing in nav
+  .nav-search {
+    .input-group-text {
+      background-color: $lux-surface;
+      border-color: $lux-border-subtle;
+      color: $lux-muted;
+    }
+
+    .form-control {
+      min-width: 10rem;
+    }
+  }
+}
+
 // Cards
 .card {
   border-radius: $lux-radius-soft;
@@ -254,7 +384,7 @@ small.text-uppercase {
 
 .card-img-top {
   border-radius: calc(#{$lux-radius-soft} - 0.2rem)
-                 calc(#{$lux-radius-soft} - 0.2rem) 0 0;
+    calc(#{$lux-radius-soft} - 0.2rem) 0 0;
   transition: transform 260ms ease-out, filter 260ms ease-out;
 }
 
@@ -272,9 +402,8 @@ small.text-uppercase {
   padding-block: 0.55rem;
   padding-inline: 0.9rem;
   background-color: $lux-surface;
-  transition: border-color $transition-base,
-              box-shadow $transition-base,
-              background-color $transition-base;
+  transition: border-color $transition-base, box-shadow $transition-base,
+    background-color $transition-base;
 
   &:focus {
     border-color: $lux-primary-soft;
@@ -342,11 +471,11 @@ small.text-uppercase {
 }
 
 .icon {
-    width: 1em;
-    height: 1em;
-    fill: currentColor;
-    display: inline-block;
-    vertical-align: middle;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 // $enable-grid-classes: false;
@@ -361,7 +490,7 @@ $enable-cssgrid: true;
 .alert-primary {
   --bs-alert-bg: #{mix(#fff, $primary, 50%)};
   --bs-alert-color: #{shade-color($primary, 60%)};
-  --bs-alert-border-color:  #{shade-color($primary, 20%)};
+  --bs-alert-border-color: #{shade-color($primary, 20%)};
 }
 
 .alert-success {

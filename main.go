@@ -23,7 +23,7 @@ func main() {
 		go scraper.ScrapeAll()
 	}
 
-	if err := http.ListenAndServe(":8080", controllers.GetServerMux()); err != nil {
+	if err := http.ListenAndServe("192.168.1.36:8080", controllers.GetServerMux()); err != nil {
 		slog.Error("Failed to start server", "error", err)
 	}
 }

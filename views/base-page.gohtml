@@ -22,13 +22,7 @@
 </head>
 
 <body class="min-vh-100 d-flex flex-column">
-    <header class="fixed-top w-100">
-        {{ template "header" . }}
-
-        {{ if .Alert }}
-        {{ template "alert" .Alert }}
-        {{ end }}
-    </header>
+    {{ template "header" . }}
 
     <!-- main grows to fill between header and footer -->
     <main class="container mt-5 pt-5 flex-grow-1 d-flex flex-column">

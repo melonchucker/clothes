@@ -22,3 +22,22 @@ CREATE TABLE session (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL CHECK (expires_at > NOW())
 );
+
+CREATE TABLE closet (
+    closet_id SERIAL PRIMARY KEY,
+    site_user_id INTEGER UNIQUE REFERENCES site_user (site_user_id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (site_user_id, name)
+);
+
+CREATE TABLE closet_item (
+    closet_item_id SERIAL PRIMARY KEY,
+    closet_id INTEGER REFERENCES closet(closet_id) ON DELETE CASCADE,
+    item_id INTEGER REFERENCES base_item(base_item_id) ON DELETE CASCADE,
+    notes TEXT,
+    added_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (closet_id, item_id)
+);

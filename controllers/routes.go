@@ -4,6 +4,7 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -56,6 +57,23 @@ func GetServerMux() http.Handler {
 
 	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
 		// TODO
+		input := r.URL.Query().Get("input")
+		results, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", input)
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println(results)
+
+		data, err := json.Marshal(results)
+		if err != nil {
+			http.Error(w, "Error serializing response", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
 	})
 
 	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {

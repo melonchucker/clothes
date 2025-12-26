@@ -7,7 +7,8 @@
                   linear-gradient(135deg, #fff8f2, #fef6ff);
     ">
     <div class="container">
-        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+        <div
+            class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
             <div>
                 <p class="small text-uppercase text-secondary mb-1">Your account</p>
                 <h1 class="display-6 fw-bold mb-2">
@@ -45,7 +46,7 @@
 
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center"
-                                 style="width: 52px; height: 52px;">
+                                style="width: 52px; height: 52px;">
                                 <span class="fw-semibold text-secondary">
                                     {{ printf "%.1s%.1s" .SiteUser.FirstName .SiteUser.LastName }}
                                 </span>
@@ -62,17 +63,17 @@
 
                         <div class="d-flex flex-wrap gap-2 mb-3">
                             {{ if .SiteUser.IsAdmin }}
-                                <span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis px-3 py-2">
-                                    Admin
-                                </span>
+                            <span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis px-3 py-2">
+                                Admin
+                            </span>
                             {{ else if .SiteUser.IsStaff }}
-                                <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis px-3 py-2">
-                                    Staff
-                                </span>
+                            <span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis px-3 py-2">
+                                Staff
+                            </span>
                             {{ else }}
-                                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
-                                    Member
-                                </span>
+                            <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                                Member
+                            </span>
                             {{ end }}
 
                             <span class="badge rounded-pill text-bg-success-subtle text-success-emphasis px-3 py-2">
@@ -91,6 +92,24 @@
                             </a>
                             <a href="/account/addresses" class="btn btn-outline-secondary">
                                 Addresses
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                    <div class="card-body p-4">
+                        <h2 class="h6 fw-semibold mb-1">Closets</h2>
+                        <!-- DUMMY -->
+                        <p class="small text-muted mb-3">
+                            Manage your saved closets
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a href="/account/closets" class="btn btn-outline-secondary">
+                                View closets
+                            </a>
+                            <a href="/account/closets/new" class="btn btn-outline-secondary">
+                                Create new closet
                             </a>
                         </div>
                     </div>

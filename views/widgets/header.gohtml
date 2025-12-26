@@ -1,48 +1,167 @@
 {{ define "header" }}
-<nav class="navbar container-fluid px-4 d-flex align-items-center">
-    <form class="col-auto d-flex align-items-center">
-        <div class="input-group">
-            <button class="input-group-text">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
-                    <path
-                        d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
-                </svg>
+<header class="fixed-top w-100 site-header">
+    <!-- TOP ROW -->
+    <nav class="navbar navbar-top py-2">
+        <div class="container-fluid px-3 px-lg-4 topbar-inner">
+
+            <!-- Mobile: offcanvas toggle (left) -->
+            <button class="btn btn-link p-0 d-lg-none topbar-toggle" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#siteOffcanvas" aria-controls="siteOffcanvas" aria-label="Open menu">
+                <span class="navbar-toggler-icon"></span>
             </button>
-            <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="Search">
+
+            <!-- Desktop: Search (left) -->
+            <form class="topbar-search d-none d-lg-flex" role="search" action="/search" method="get">
+                <div class="input-group nav-search">
+                    <span class="input-group-text">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true"
+                            focusable="false">
+                            <path
+                                d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
+                        </svg>
+                        <span class="visually-hidden">Search</span>
+                    </span>
+                    <input id="desktop-search" name="q" type="search" class="form-control" placeholder="Search"
+                        autocomplete="off">
+                </div>
+            </form>
+
+            <!-- Brand (center) -->
+            <a class="navbar-brand topbar-brand display-1" href="/">Carousel</a>
+
+            <!-- Right side: Desktop actions -->
+            <div class="topbar-actions d-none d-lg-flex align-items-center gap-3">
+                <ul class="navbar-nav flex-row align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="/cart">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1.25rem" height="1.25rem" fill="currentColor"
+                                class="bi bi-bag" viewBox="0 0 16 16">
+                                <path
+                                    d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                            </svg>
+                        </a>
+                    </li>
+                    {{ if .SiteUser }}
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="/account">
+                            Account <span class="text-muted">({{ .SiteUser.Username }})</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="/sign-out">Sign Out</a>
+                    </li>
+                    {{ else }}
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="/sign-up">Sign Up</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="/sign-in">Sign In</a>
+                    </li>
+                    {{ end }}
+
+                </ul>
+            </div>
+
+            <!-- Mobile: Cart (right) -->
+            <a class="nav-link d-lg-none topbar-cart" href="/cart"> <svg xmlns="http://www.w3.org/2000/svg"
+                    width="1.25rem" height="1.25rem" fill="currentColor" class="bi bi-bag" viewBox="0 0 16 16">
+                    <path
+                        d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" />
+                </svg>
+            </a>
         </div>
-    </form>
+    </nav>
 
-    <a class="col-auto navbar-brand" href="/">Carousel</a>
+    <!-- SECOND ROW (category bar) -->
+    <nav
+        class="navbar navbar-cats container-fluid px-3 px-lg-4 py-2 align-items-center justify-content-center gap-5 text-bg-dark flex-nowrap overflow-hidden">
+        <a class="nav-link" href="/clothes">Browse</a>
+        <a class="nav-link" href="/brands">Brands</a>
+        <a class="nav-link" href="/browse/dresses">Dresses</a>
+        <a class="nav-link" href="/browse/tops">Tops</a>
 
-    <div class="col-auto">
-        <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
-            {{ if .SiteUser }}
-            <li class="nav-item me-3">
-                <a class="nav-link" href="/account">Account ({{ .SiteUser.Username }})</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/sign-out">Sign Out</a>
-            </li>
-            {{ else }}
-            <li class="nav-item">
-                <a class="nav-link" href="/sign-up">Sign Up</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/sign-in">Sign In</a>
-            </li>
-            {{ end }}
-        </ul>
+        <a class="nav-link d-none d-sm-inline" href="/browse/bottoms">Bottoms</a>
+        <a class="nav-link d-none d-md-inline" href="/browse/accessories">Accessories</a>
+        <a class="nav-link d-none d-lg-inline" href="/browse/shoes">Shoes</a>
+        <a class="nav-link d-none d-lg-inline" href="/sale">Sale</a>
+    </nav>
+
+    <!-- Offcanvas (mobile) -->
+    <div class="offcanvas offcanvas-end site-offcanvas" tabindex="-1" id="siteOffcanvas"
+        aria-labelledby="siteOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="siteOffcanvasLabel">Menu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body">
+            <!-- Search -->
+            <form class="mb-3" role="search" action="/search" method="get">
+                <label class="form-label" for="offcanvasSearch">Search</label>
+                <div class="input-group nav-search">
+                    <span class="input-group-text">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true"
+                            focusable="false">
+                            <path
+                                d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
+                        </svg>
+                        <span class="visually-hidden">Search</span>
+                    </span>
+                    <input id="offcanvasSearch" name="q" type="search" class="form-control" placeholder="Search"
+                        autocomplete="off">
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Account links -->
+            <div class="mb-3">
+                <div class="form-label mb-2">Account</div>
+                <ul class="nav flex-column gap-1">
+                    {{ if .SiteUser }}
+                    <li class="nav-item">
+                        <a class="nav-link px-0" href="/account">
+                            Account <span class="text-muted">({{ .SiteUser.Username }})</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-0" href="/sign-out">Sign Out</a>
+                    </li>
+                    {{ else }}
+                    <li class="nav-item">
+                        <a class="nav-link px-0" href="/sign-up">Sign Up</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-0" href="/sign-in">Sign In</a>
+                    </li>
+                    {{ end }}
+                    <li class="nav-item">
+                        <a class="nav-link px-0" href="/cart">Cart</a>
+                    </li>
+                </ul>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Categories -->
+            <div>
+                <div class="form-label mb-2">Browse</div>
+                <ul class="nav flex-column gap-1">
+                    <li class="nav-item"><a class="nav-link px-0" href="/clothes">Browse</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/brands">Brands</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/browse/dresses">Dresses</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/browse/tops">Tops</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/browse/bottoms">Bottoms</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/browse/accessories">Accessories</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/browse/shoes">Shoes</a></li>
+                    <li class="nav-item"><a class="nav-link px-0" href="/sale">Sale</a></li>
+                </ul>
+            </div>
+        </div>
     </div>
-</nav>
 
-<nav class="navbar bg-dark container-fluid justify-content-around py-2">
-    <a class="nav-link" href="/clothes">Browse</a>
-    <a class="nav-link" href="/brands">Brands</a>
-    <a class="nav-link" href="/browse/dresses">Dresses</a>
-    <a class="nav-link" href="/browse/tops">Tops</a>
-    <a class="nav-link" href="/browse/bottoms">Bottoms</a>
-    <a class="nav-link" href="/browse/accessories">Accessories</a>
-    <a class="nav-link" href="/browse/shoes">Shoes</a>
-    <a class="nav-link" href="/sale">Sale</a>
-</nav>
+    {{ if .Alert }}
+    {{ template "alert" .Alert }}
+    {{ end }}
+</header>
 {{ end }}

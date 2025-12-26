@@ -16,7 +16,17 @@ a:hover {
   color: #3f4a52;
 }
 
-h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+h1, .h1,
+h2,
+.h2,
+h3,
+.h3,
+h4,
+.h4,
+h5,
+.h5,
+h6,
+.h6 {
   font-family: "Playfair Display", "Times New Roman", serif;
   letter-spacing: 0.03em;
   text-transform: none;
@@ -99,6 +109,102 @@ small.text-uppercase, .text-uppercase.small {
 }
 .navbar .navbar-nav .nav-link.active, .navbar .navbar-nav .nav-link:hover, .navbar .navbar-nav .nav-link:focus {
   color: #22201d;
+}
+
+:root {
+  --site-header-height: 112px;
+}
+
+@media (min-width: 992px) {
+  :root {
+    --site-header-height: 120px;
+  }
+}
+body {
+  padding-top: var(--site-header-height);
+}
+
+.site-header .navbar-top {
+  position: relative;
+  z-index: 1050;
+  background-color: rgba(247, 243, 236, 0.86);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+}
+.site-header .navbar-cats {
+  position: relative;
+  z-index: 1040;
+  background-color: rgba(34, 32, 29, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.site-header .topbar-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+}
+@media (min-width: 992px) {
+  .site-header .topbar-inner {
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 1rem;
+  }
+  .site-header .topbar-search {
+    justify-self: start;
+    max-width: 520px;
+  }
+  .site-header .topbar-actions {
+    justify-self: end;
+  }
+}
+.site-header .topbar-brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-weight: 200;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 1.65rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+.site-header .topbar-toggle {
+  color: #22201d;
+  text-decoration: none;
+}
+.site-header .topbar-toggle .navbar-toggler-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.site-header .topbar-cart {
+  justify-self: end;
+  color: #22201d;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+.site-header .site-offcanvas {
+  background-color: #ffffff;
+  color: #22201d;
+}
+.site-header .site-offcanvas .offcanvas-title {
+  font-family: "Playfair Display", "Times New Roman", serif;
+  letter-spacing: 0.06em;
+}
+.site-header .site-offcanvas .nav-link {
+  color: #22201d;
+}
+.site-header .site-offcanvas .nav-link:hover, .site-header .site-offcanvas .nav-link:focus {
+  color: #b87349;
+}
+.site-header .nav-search .input-group-text {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #5e5954;
+}
+.site-header .nav-search .form-control {
+  min-width: 10rem;
 }
 
 .card {
