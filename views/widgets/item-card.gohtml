@@ -1,4 +1,4 @@
-{{ define "card" }}
+{{ define "item-card" }}
 <div class="card h-100 position-relative" style="width: 18rem;">
     <a href="{{ .Href }}" class="text-decoration-none text-reset d-flex flex-column h-100">
         {{ if .ImageURL }}
@@ -6,11 +6,10 @@
         {{ end }}
 
         <div class="card-body">
-            <h2 class="card-title h5 mb-2">{{ .Title }}</h2>
-            <div class="card-text">{{ .Content }}</div>
+            <h2 class="card-title h5 mb-2">{{ .ItemName }}</h2>
+            <div class="card-text">{{ .Brand }}</div>
         </div>
     </a>
-
-    <add-to-closet-button brand="test" item="test-item"></add-to-closet-button>
+    <add-to-closet-button brand="{{ .Brand }}" item="{{ .ItemName }}"></add-to-closet-button>
 </div>
 {{ end }}

@@ -21,9 +21,9 @@ type Alert struct {
 	Level   AlertLevel
 }
 
-type Card struct {
-	Title    string
-	Content  string
+type ItemCard struct {
+	ItemName string
+	Brand    string
 	ImageURL string
 	ImageAlt string
 	Href     string
@@ -31,7 +31,7 @@ type Card struct {
 
 type MoreLike struct {
 	Title string
-	Items []Card
+	Items []ItemCard
 }
 
 type Pageination struct {

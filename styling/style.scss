@@ -464,6 +464,20 @@ body {
   box-shadow: $lux-shadow-soft;
 }
 
+.dropdown-search {
+  position: absolute;
+  left: 1rem;
+  top: calc(100%);
+  z-index: 2000;
+  width: 30rem;
+  background: rgb(255, 255, 255);
+  color: rgb(33, 37, 41);
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 0.5rem 1rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  padding: 1rem;
+}
+
 // Dark background helper – keep for existing .bg-dark
 .bg-dark {
   background-color: $lux-ink !important;

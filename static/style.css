@@ -306,6 +306,20 @@ body {
   box-shadow: 0 18px 45px rgba(15, 10, 5, 0.08);
 }
 
+.dropdown-search {
+  position: absolute;
+  left: 1rem;
+  top: 100%;
+  z-index: 2000;
+  width: 30rem;
+  background: rgb(255, 255, 255);
+  color: rgb(33, 37, 41);
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 0.5rem 1rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  padding: 1rem;
+}
+
 .bg-dark {
   background-color: #22201d !important;
   color: #fff;

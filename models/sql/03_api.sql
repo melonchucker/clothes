@@ -1,3 +1,5 @@
+DROP SCHEMA IF EXISTS api CASCADE;
+
 CREATE SCHEMA api;
 
 CREATE FUNCTION api.browse (
@@ -395,6 +397,8 @@ CREATE FUNCTION api.site_user_signup (
     p_email CITEXT,
     p_password TEXT
 ) RETURNS TEXT AS $$
+DECLARE
+    v_session_token TEXT;
 BEGIN
     INSERT INTO site_user (first_name, last_name, username, email, password_hash, is_staff, is_admin)
     VALUES (
@@ -407,7 +411,11 @@ BEGIN
         FALSE
     );
 
-    RETURN api.site_user_authenticate(p_email, p_password);
+    SELECT api.site_user_authenticate(p_email, p_password) INTO v_session_token;
+
+    PERFORM api.site_user_add_closet(v_session_token, 'Favorites');
+
+    RETURN v_session_token;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -479,5 +487,110 @@ CREATE FUNCTION api.user_signout (p_session_token TEXT) RETURNS VOID AS $$
 BEGIN
     DELETE FROM session
     WHERE session_token = p_session_token;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.site_user_add_closet (p_session_token TEXT, p_closet_name TEXT) RETURNS VOID AS $$
+DECLARE
+    v_site_user_id INTEGER;
+BEGIN
+    SELECT su.site_user_id INTO v_site_user_id
+    FROM site_user su
+    JOIN session s ON su.site_user_id = s.site_user_id
+    WHERE s.session_token = p_session_token;
+    IF v_site_user_id IS NULL THEN
+        RAISE EXCEPTION 'Invalid session token';
+    END IF;
+    INSERT INTO closet (site_user_id, name)
+    VALUES (v_site_user_id, p_closet_name);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.site_user_add_item_to_closet (
+    p_username TEXT,
+    p_closet_name TEXT,
+    p_base_item_name CITEXT,
+    p_brand_name CITEXT
+) RETURNS VOID AS $$
+DECLARE
+    v_site_user_id INTEGER;
+    v_closet_id INTEGER;
+    v_base_item_id INTEGER;
+BEGIN
+    SELECT su.site_user_id INTO v_site_user_id
+    FROM site_user su
+    WHERE su.username = p_username;
+    IF v_site_user_id IS NULL THEN
+        RAISE EXCEPTION 'Invalid username: %', p_username;
+    END IF;
+
+    SELECT c.closet_id INTO v_closet_id
+    FROM closet c
+    WHERE c.site_user_id = v_site_user_id
+        AND c.name = p_closet_name;
+    IF v_closet_id IS NULL THEN
+        RAISE EXCEPTION 'Closet "%" not found for user "%"', p_closet_name, p_username;
+    END IF;
+    SELECT bi.base_item_id INTO v_base_item_id
+    FROM base_item bi
+    JOIN brand b ON bi.brand_id = b.brand_id
+    WHERE bi.name = p_base_item_name
+        AND b.name = p_brand_name;
+    IF v_base_item_id IS NULL THEN
+        RAISE EXCEPTION 'Base item "%" for brand "%" not found', p_base_item_name, p_brand_name;
+    END IF;
+    INSERT INTO closet_item (closet_id, item_id)
+    VALUES (v_closet_id, v_base_item_id)
+    ON CONFLICT (closet_id, item_id) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.site_user_get_closets (p_username TEXT) RETURNS JSONB AS $$
+DECLARE
+    v_site_user_id INTEGER;
+    v_closets JSONB;
+BEGIN
+    SELECT su.site_user_id INTO v_site_user_id
+    FROM site_user su
+    WHERE su.username = p_username;
+    IF v_site_user_id IS NULL THEN
+        RAISE EXCEPTION 'Invalid username: %', p_username;
+    END IF;
+
+    -- get a list of closets with all the items in them
+    SELECT COALESCE(
+        jsonb_agg(
+            jsonb_build_object(
+                'closet_id', c.closet_id,
+                'name', c.name,
+                'description', c.description,
+                'created_at', c.created_at,
+                'updated_at', c.updated_at,
+                'items', (
+                    SELECT COALESCE(
+                        jsonb_agg(
+                            jsonb_build_object(
+                                'base_item_name', bi.name,
+                                'brand_name', b.name,
+                                'thumbnail_url', img.url,
+                                'notes', ci.notes,
+                                'added_at', ci.added_at
+                            ) ORDER BY bi.name
+                        ),
+                        '[]'::jsonb
+                    )
+                    FROM closet_item ci
+                    JOIN base_item bi ON ci.item_id = bi.base_item_id
+                    JOIN brand b ON bi.brand_id = b.brand_id
+                    LEFT JOIN image img ON bi.thumbnail_image_id = img.image_id
+                    WHERE ci.closet_id = c.closet_id
+                )
+            ) ORDER BY c.name
+        ),
+        '[]'::jsonb
+    ) INTO v_closets
+    FROM closet c
+    WHERE c.site_user_id = v_site_user_id;
+    RETURN v_closets;
 END;
 $$ LANGUAGE plpgsql;

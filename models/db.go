@@ -20,6 +20,7 @@ func GetDb() *pgxpool.Pool {
 	return pool
 }
 
+// Helper function that calls a function in the 'api' schema and returns the result
 func ApiQuery[T any](ctx context.Context, apiFunction string, args ...any) (*T, error) {
 	argsStrings := make([]string, len(args))
 	for ndx := range args {
@@ -52,6 +53,20 @@ func init() {
 		slog.Error("Failed to create connection pool", "error", err)
 		os.Exit(1)
 	}
+
+	// BEGIN KLUDGE
+	// always rerun the api sql schema to ensure it's up to date
+	content, err := os.ReadFile(fmt.Sprintf("%s/03_api.sql", sqlDir))
+	if err != nil {
+		slog.Error("Failed to read api schema SQL file", "error", err)
+		os.Exit(1)
+	}
+	_, err = p.Exec(context.Background(), string(content))
+	if err != nil {
+		slog.Error("Failed to execute api schema SQL file", "error", err)
+		os.Exit(1)
+	}
+	// END KLUDGE
 
 	slog.Info("Database connection pool established and schema initialized")
 	pool = p

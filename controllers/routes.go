@@ -4,7 +4,6 @@ import (
 	"clothes/models"
 	"clothes/views"
 	"clothes/views/widgets"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -36,7 +35,6 @@ func GetAuthenticatedServerMux() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Authenticated request to /account/")
 		views.RenderPage("account", w, NewPageData(w, r, "Account", nil))
 	})
 
@@ -48,33 +46,13 @@ func GetServerMux() http.Handler {
 
 	// everything under account is authenticated
 	mux.Handle("/account/", http.StripPrefix("/account", GetAuthenticatedServerMux()))
+	mux.Handle("/api/", http.StripPrefix("/api", GetApiMux()))
 
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		views.RenderPage("home", w, NewPageData(w, r, "Home", nil))
 	})
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-	mux.HandleFunc("GET /api/search_bar", func(w http.ResponseWriter, r *http.Request) {
-		// TODO
-		input := r.URL.Query().Get("input")
-		results, err := models.ApiQuery[models.SearchBar](r.Context(), "search_bar", input)
-		if err != nil {
-			http.Error(w, "Error querying database", http.StatusInternalServerError)
-			return
-		}
-
-		fmt.Println(results)
-
-		data, err := json.Marshal(results)
-		if err != nil {
-			http.Error(w, "Error serializing response", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
-	})
 
 	mux.HandleFunc("GET /brands", func(w http.ResponseWriter, r *http.Request) {
 		brands, err := models.ApiQuery[models.Brands](r.Context(), "brands")
@@ -121,11 +99,11 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		cards := []widgets.Card{}
+		cards := []widgets.ItemCard{}
 		for _, item := range items.Items {
-			card := widgets.Card{
-				Title:    item.ItemName,
-				Content:  item.BrandName,
+			card := widgets.ItemCard{
+				ItemName: item.ItemName,
+				Brand:    item.BrandName,
 				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
 				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
 				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
@@ -134,7 +112,7 @@ func GetServerMux() http.Handler {
 		}
 
 		data := struct {
-			Cards      []widgets.Card
+			Cards      []widgets.ItemCard
 			Pagination widgets.Pageination
 		}{
 			Cards: cards,
@@ -144,6 +122,7 @@ func GetServerMux() http.Handler {
 				BaseURL:     *r.URL,
 			},
 		}
+		fmt.Println(data.Cards)
 
 		title := strings.Title(strings.ReplaceAll(topLevelTag, "_", " "))
 
@@ -179,11 +158,11 @@ func GetServerMux() http.Handler {
 			return
 		}
 
-		cards := []widgets.Card{}
+		cards := []widgets.ItemCard{}
 		for _, item := range items.Items {
-			card := widgets.Card{
-				Title:    item.ItemName,
-				Content:  item.BrandName,
+			card := widgets.ItemCard{
+				ItemName: item.ItemName,
+				Brand:    item.BrandName,
 				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
 				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
 				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
@@ -192,7 +171,7 @@ func GetServerMux() http.Handler {
 		}
 
 		data := struct {
-			Cards      []widgets.Card
+			Cards      []widgets.ItemCard
 			Pagination widgets.Pageination
 		}{
 			Cards: cards,
@@ -253,9 +232,9 @@ func GetServerMux() http.Handler {
 			SimilarItems: widgets.MoreLike{Title: "Similar to this"},
 		}
 		for _, item := range detail.MoreLike.SameBrand {
-			card := widgets.Card{
-				Title:    item.ItemName,
-				Content:  item.BrandName,
+			card := widgets.ItemCard{
+				ItemName: item.ItemName,
+				Brand:    item.BrandName,
 				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
 				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
 				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),
@@ -263,9 +242,9 @@ func GetServerMux() http.Handler {
 			data.MoreOfBrand.Items = append(data.MoreOfBrand.Items, card)
 		}
 		for _, item := range detail.MoreLike.SimilarItems {
-			card := widgets.Card{
-				Title:    item.ItemName,
-				Content:  item.BrandName,
+			card := widgets.ItemCard{
+				ItemName: item.ItemName,
+				Brand:    item.BrandName,
 				ImageURL: fmt.Sprintf("/static/images/%s", item.ThumbnailUrl),
 				ImageAlt: fmt.Sprintf("%s %s", item.BrandName, item.ItemName),
 				Href:     strings.ToLower(fmt.Sprintf("/item/%s/%s", item.BrandName, item.ItemName)),

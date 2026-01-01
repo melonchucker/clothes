@@ -57,3 +57,20 @@ type SiteUser struct {
 	IsStaff   bool   `json:"is_staff"`
 	IsAdmin   bool   `json:"is_admin"`
 }
+
+type SiteUserCloset struct {
+	Name        string               `json:"name"`
+	Items       []SiteUserClosetItem `json:"items"`
+	ClosetID    int                  `json:"closet_id"`
+	CreatedAt   string               `json:"created_at"`
+	UpdatedAt   string               `json:"updated_at"`
+	Description *string              `json:"description"`
+}
+
+type SiteUserClosetItem struct {
+	Notes        *string `json:"notes"`
+	AddedAt      string  `json:"added_at"`
+	BrandName    string  `json:"brand_name"`
+	ThumbnailUrl string  `json:"thumbnail_url"`
+	BaseItemName string  `json:"base_item_name"`
+}
