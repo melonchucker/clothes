@@ -15,7 +15,6 @@ interface SearchData {
 export class SearchBarElement extends LitElement {
     // Public attributes
     @property({ type: String }) action = "/search";
-    @property({ type: String }) method = "get";
     @property({ type: String }) api = "/api/search_bar";
     @property({ type: String }) placeholder = "Search";
     @property({ type: String }) name = "q";
@@ -38,7 +37,6 @@ export class SearchBarElement extends LitElement {
         this._onDocumentPointerDown = this._onDocumentPointerDown.bind(this);
     }
 
-    // Use light DOM so external CSS (e.g. Bootstrap) can style dropdowns
     override createRenderRoot() {
         return this;
     }
@@ -167,7 +165,6 @@ export class SearchBarElement extends LitElement {
                 class="topbar-search d-none d-lg-flex position-relative"
                 role="search"
                 action="${this.action}"
-                method="${this.method}"
                 @focusin=${() => this._onFocusIn()}
             >
                 <div class="input-group nav-search">

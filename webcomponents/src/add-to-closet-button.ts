@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 interface Closet {
@@ -6,18 +6,24 @@ interface Closet {
     [key: string]: unknown;
 }
 
-@customElement("add-to-closet-button")
+@customElement("add-to-closet")
 export class AddToClosetButton extends LitElement {
-    // attributes
-    @property({ type: String }) brand = "";
-    @property({ type: String }) item = "";
+    @property({ type: String })
+    brand = "";
+    @property({ type: String })
+    item = "";
 
     // internal reactive state
-    @state() private open = false;
-    @state() private loading = false;
-    @state() private query = "";
-    @state() private data: unknown = null;
-    @state() private closets: Closet[] = [];
+    @state()
+    private open = false;
+    @state()
+    private loading = false;
+    @state()
+    private query = "";
+    @state()
+    private data: unknown = null;
+    @state()
+    private closets: Closet[] = [];
 
     // internal non-reactive helpers
     private _abort?: AbortController;
@@ -48,6 +54,42 @@ export class AddToClosetButton extends LitElement {
             console.error(err);
         } finally {
             this.loading = false;
+        }
+    };
+
+    private _createNewCloset = async (e: Event) => {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        const newClosetName = formData.get("newClosetName") as string;
+        if (!newClosetName) return;
+
+        this._abort?.abort();
+        this._abort = new AbortController();
+
+        try {
+            const res = await fetch("/api/user/closets/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: newClosetName,
+                }),
+                signal: this._abort.signal,
+            });
+
+            if (!res.ok) {
+                console.error("Failed to create new closet", await res.text());
+                return;
+            }
+
+            const newCloset = await res.json();
+            this.closets = [...this.closets, newCloset];
+            form.reset();
+        } catch (err) {
+            if ((err as DOMException)?.name === "AbortError") return;
+            console.error(err);
+        } finally {
+            this._abort = undefined;
         }
     };
 
@@ -88,14 +130,18 @@ export class AddToClosetButton extends LitElement {
 
     override connectedCallback() {
         super.connectedCallback();
-        document.addEventListener("pointerdown", this._onDocumentPointerDown, true);
+        document.addEventListener(
+            "pointerdown",
+            this._onDocumentPointerDown,
+            true,
+        );
     }
 
     override disconnectedCallback() {
         document.removeEventListener(
             "pointerdown",
             this._onDocumentPointerDown,
-            true
+            true,
         );
         this._abort?.abort();
         if (this._debounceTimer) {
@@ -105,15 +151,13 @@ export class AddToClosetButton extends LitElement {
         super.disconnectedCallback();
     }
 
-    // render into light DOM (no shadowRoot)
     override createRenderRoot() {
         return this;
     }
 
     override render() {
         const btnSelector = ".add-to-closet-trigger";
-        let menuStyle =
-            "position:fixed; right:1rem; top:3rem; z-index:2000;"; // fallback
+        let menuStyle = "position:fixed; right:1rem; top:3rem; z-index:2000;"; // fallback
 
         if (this.open) {
             const btn = this.renderRoot.querySelector(btnSelector) as
@@ -121,10 +165,14 @@ export class AddToClosetButton extends LitElement {
                 | null;
             if (btn) {
                 const r = btn.getBoundingClientRect();
-                menuStyle = `position:fixed; left:${Math.max(0, r.left)}px; top:${Math.max(
-                    0,
-                    r.bottom
-                )}px; min-width:${r.width}px; z-index:2000;`;
+                menuStyle = `position:fixed; left:${
+                    Math.max(0, r.left)
+                }px; top:${
+                    Math.max(
+                        0,
+                        r.bottom,
+                    )
+                }px; min-width:${r.width}px; z-index:2000;`;
             }
         }
 
@@ -150,23 +198,33 @@ export class AddToClosetButton extends LitElement {
                     />
                 </svg>
 
-                ${this.open
-                    ? html`<div
+                ${
+            this.open
+                ? html`<div
                             class="dropdown-menu show dropdown-search mt-1"
                             style=${menuStyle}
                         >
                             <h3 class="dropdown-header">Select Closet to Add</h3>
-                            ${this.closets.map(
-                                (closet) => html` <button
+                            ${
+                    this.closets.map(
+                        (closet) =>
+                            html` <button
                                     @click=${this._addToCloset}
                                     type="button"
                                     class="dropdown-item"
                                 >
                                     ${closet.name}
-                                </button>`
-                            )}
+                                </button>`,
+                    )
+                }
+                            <h3 class="dropdown-header">Create New Closet</h3>
+                            <form @submit=${this._createNewCloset}>
+                                <input type="text" name="newClosetName" placeholder="New closet name" required />
+                                <button type="submit" class="btn btn-primary">Create</button>
+                            </form>
                         </div>`
-                    : null}
+                : null
+        }
             </button>
         `;
     }

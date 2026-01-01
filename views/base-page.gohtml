@@ -15,12 +15,6 @@
         rel="stylesheet" />
 
     <link rel="stylesheet" href="/static/style.css" />
-
-    <!-- <script type="module">
-        import {LitElement, html} from 'https://cdn.jsdelivr.net/gh/lit/dist@3/core/lit-core.min.js';
-    </script> -->
-    <script type="module" src="/static/scripts/funcs.js"></script>
-    <!-- <script src="/static/scripts/funcs.js" defer></script> -->
     <script type="module" src="/static/apps/bundle.js"></script>
     {{ block "head-extra" . }}{{ end }}
 </head>
@@ -32,9 +26,6 @@
     <main class="container mt-5 pt-5 flex-grow-1 d-flex flex-column">
         {{ template "content" . }}
     </main>
-       <my-element-jordan>
-      <p>This is child content</p>
-    </my-element-jordan>
 
     {{ template "footer" . }}
 </body>
