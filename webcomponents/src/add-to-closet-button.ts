@@ -17,142 +17,78 @@ export class AddToClosetButton extends LitElement {
     @state()
     private open = false;
     @state()
-    private loading = false;
-    @state()
-    private query = "";
-    @state()
-    private data: unknown = null;
-    @state()
     private closets: Closet[] = [];
 
-    // internal non-reactive helpers
-    private _abort?: AbortController;
-    private _debounceTimer?: number;
-
-    // use arrow functions so `this` is preserved; no manual bind needed
-    private _onDocumentPointerDown = (e: PointerEvent) => {
-        const target = e.target as Node | null;
-        if (!target || !this.contains(target)) {
-            this.open = false;
-        }
-    };
-
-    private _onClick = async () => {
-        if (this.open) {
-            this.open = false;
-            return;
-        }
-
-        this.loading = true;
-        try {
-            const res = await fetch("/api/user/closets");
-            if (!res.ok) throw new Error("Failed to load closets");
-            const closets = (await res.json()) as Closet[];
-            this.closets = closets;
-            this.open = true;
-        } catch (err) {
-            console.error(err);
-        } finally {
-            this.loading = false;
-        }
-    };
-
-    private _createNewCloset = async (e: Event) => {
-        e.preventDefault();
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        const newClosetName = formData.get("newClosetName") as string;
-        if (!newClosetName) return;
-
-        this._abort?.abort();
-        this._abort = new AbortController();
-
-        try {
-            const res = await fetch("/api/user/closets/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: newClosetName,
-                }),
-                signal: this._abort.signal,
-            });
-
-            if (!res.ok) {
-                console.error("Failed to create new closet", await res.text());
-                return;
-            }
-
-            const newCloset = await res.json();
-            this.closets = [...this.closets, newCloset];
-            form.reset();
-        } catch (err) {
-            if ((err as DOMException)?.name === "AbortError") return;
-            console.error(err);
-        } finally {
-            this._abort = undefined;
-        }
-    };
-
-    private _addToCloset = async (e: Event) => {
-        const target = (e.currentTarget ?? e.target) as HTMLElement | null;
-        const closetName = target?.textContent?.trim() ?? "";
-        if (!closetName) return;
-
-        this._abort?.abort();
-        this._abort = new AbortController();
-
-        try {
-            const res = await fetch("/api/user/closets/add_item", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    closet_name: closetName,
-                    item: this.item,
-                    brand: this.brand,
-                }),
-                signal: this._abort.signal,
-            });
-
-            if (!res.ok) {
-                console.error("Failed to add item to closet", await res.text());
-                return;
-            }
-
-            // success
-            this.open = false;
-        } catch (err) {
-            if ((err as DOMException)?.name === "AbortError") return;
-            console.error(err);
-        } finally {
-            this._abort = undefined;
-        }
-    };
+    private svg = html`
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1.25rem"
+        height="1.25rem"
+        fill="currentColor"
+        class="bi bi-heart"
+        viewBox="0 0 16 16"
+    >
+        <path
+            d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"
+        />
+    </svg>`;
 
     override connectedCallback() {
         super.connectedCallback();
-        document.addEventListener(
-            "pointerdown",
-            this._onDocumentPointerDown,
-            true,
-        );
+        // document.addEventListener(
+        //     "pointerdown",
+        //     this._onDocumentPointerDown,
+        //     true,
+        // );
     }
 
     override disconnectedCallback() {
-        document.removeEventListener(
-            "pointerdown",
-            this._onDocumentPointerDown,
-            true,
-        );
-        this._abort?.abort();
-        if (this._debounceTimer) {
-            window.clearTimeout(this._debounceTimer);
-            this._debounceTimer = undefined;
-        }
+        // document.removeEventListener(
+        //     "pointerdown",
+        //     this._onDocumentPointerDown,
+        //     true,
+        // );
         super.disconnectedCallback();
     }
 
     override createRenderRoot() {
         return this;
+    }
+
+    private async _buttonClick(e: MouseEvent) {
+        e.stopPropagation();
+        if (this.open) {
+            this.open = false;
+            return;
+        }
+
+        let req = await fetch("/api/user/closets");
+        let closets = await req.json();
+        this.closets = closets;
+        this.open = true;
+    }
+
+    private async _addToCloset(closetName: string) {
+        console.log(
+            `Adding ${this.item} by ${this.brand} to closet ${closetName}`,
+        );
+        let req = await fetch("/api/user/closets/add_item", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                closet_name: closetName,
+                item: this.item,
+                brand: this.brand,
+            }),
+        });
+        if (!req.ok) {
+            console.error("Failed to add item to closet");
+            return;
+        }
+
+        this.open = false;
     }
 
     override render() {
@@ -166,66 +102,63 @@ export class AddToClosetButton extends LitElement {
             if (btn) {
                 const r = btn.getBoundingClientRect();
                 menuStyle = `position:fixed; left:${
-                    Math.max(0, r.left)
+                    Math.max(0, Math.round(r.left))
                 }px; top:${
                     Math.max(
                         0,
-                        r.bottom,
+                        Math.round(r.bottom),
                     )
-                }px; min-width:${r.width}px; z-index:2000;`;
+                }px; min-width:${Math.round(r.width)}px; z-index:2000;`;
             }
         }
 
-        return html`
-            <button
-                @click=${this._onClick}
-                type="button"
-                class="add-to-closet-trigger btn btn-link position-absolute top-0 end-0 m-2 z-3 p-2 d-flex align-items-center justify-content-center text-light"
-                aria-label="Add to closet"
-                aria-haspopup="true"
-                aria-expanded=${this.open ? "true" : "false"}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="1.25rem"
-                    height="1.25rem"
-                    fill="currentColor"
-                    class="bi bi-heart"
-                    viewBox="0 0 16 16"
-                >
-                    <path
-                        d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"
-                    />
-                </svg>
+        const uid = `${this.brand}-${this.item}`;
+        const id = `add-to-closet-${uid.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+        const labelId = `${id}-label`;
 
-                ${
-            this.open
-                ? html`<div
-                            class="dropdown-menu show dropdown-search mt-1"
-                            style=${menuStyle}
-                        >
-                            <h3 class="dropdown-header">Select Closet to Add</h3>
-                            ${
-                    this.closets.map(
-                        (closet) =>
-                            html` <button
-                                    @click=${this._addToCloset}
-                                    type="button"
-                                    class="dropdown-item"
-                                >
-                                    ${closet.name}
-                                </button>`,
-                    )
-                }
-                            <h3 class="dropdown-header">Create New Closet</h3>
-                            <form @submit=${this._createNewCloset}>
-                                <input type="text" name="newClosetName" placeholder="New closet name" required />
-                                <button type="submit" class="btn btn-primary">Create</button>
-                            </form>
-                        </div>`
-                : null
-        }
+        return html`
+            <!-- Button trigger modal -->
+            <button 
+            type="button" 
+            class="add-to-closet-trigger btn btn-link position-absolute top-0 end-0 m-2 z-3 p-2 d-flex align-items-center justify-content-center text-light"
+            aria-label="Add to closet" 
+            data-bs-toggle="modal" 
+            data-bs-target="#${id}"
+            @click=${(e: MouseEvent) => this._buttonClick(e)}
+            >
+            ${this.svg}
             </button>
-        `;
+
+            <!-- Modal -->
+            <div class="modal fade" id="${id}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="${labelId}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="${labelId}">Add <em>${this.brand} ${this.item}</em> to closet</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            ${
+            this.closets.length
+            ? html`<div class="list-group">
+                ${
+                this.closets.map(
+                (closet) =>
+                    html`<button
+                type="button"
+                class="list-group-item list-group-item-action"
+                @click=${() => this._addToCloset(closet.name)}
+                data-bs-dismiss="modal"
+                >${closet.name}</button>`,
+                )
+            }
+            </div>`
+            : html`<div class="dropdown-item-text p-2">No closets</div>`
+        }
+            </div>
+            </div>
+            </div>
+            </div>          
+            `;
     }
 }
