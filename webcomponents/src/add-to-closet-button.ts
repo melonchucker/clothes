@@ -112,9 +112,15 @@ export class AddToClosetButton extends LitElement {
             }
         }
 
+        // BEGIN KLUDGE
+        // This is a workaround to use the bootstrap modals within a Lit component
+        // if they share the same ID, they all refer to the first one in the DOM
         const uid = `${this.brand}-${this.item}`;
-        const id = `add-to-closet-${uid.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+        const id = `add-to-closet-${
+            uid.replace(/[^a-z0-9]+/gi, "-").toLowerCase()
+        }`;
         const labelId = `${id}-label`;
+        // END KLUDGE
 
         return html`
             <!-- Button trigger modal -->
@@ -130,7 +136,7 @@ export class AddToClosetButton extends LitElement {
             </button>
 
             <!-- Modal -->
-            <div class="modal fade" id="${id}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="${labelId}" aria-hidden="true">
+            <div class="modal fade" id="${id}" tabindex="-1" aria-labelledby="${labelId}" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
             <div class="modal-header">
@@ -140,20 +146,20 @@ export class AddToClosetButton extends LitElement {
             <div class="modal-body">
             ${
             this.closets.length
-            ? html`<div class="list-group">
+                ? html`<div class="list-group">
                 ${
-                this.closets.map(
-                (closet) =>
-                    html`<button
+                    this.closets.map(
+                        (closet) =>
+                            html`<button
                 type="button"
                 class="list-group-item list-group-item-action"
                 @click=${() => this._addToCloset(closet.name)}
                 data-bs-dismiss="modal"
                 >${closet.name}</button>`,
-                )
-            }
+                    )
+                }
             </div>`
-            : html`<div class="dropdown-item-text p-2">No closets</div>`
+                : html`<div class="dropdown-item-text p-2">No closets</div>`
         }
             </div>
             </div>

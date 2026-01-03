@@ -413,7 +413,7 @@ BEGIN
 
     SELECT api.site_user_authenticate(p_email, p_password) INTO v_session_token;
 
-    PERFORM api.site_user_add_closet(v_session_token, 'Favorites');
+    PERFORM api.site_user_add_closet(p_username, 'Favorites');
 
     RETURN v_session_token;
 END;
@@ -490,19 +490,41 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION api.site_user_add_closet (p_session_token TEXT, p_closet_name TEXT) RETURNS VOID AS $$
+CREATE FUNCTION api.site_user_add_closet (p_username TEXT, p_closet_name TEXT) RETURNS VOID AS $$
 DECLARE
     v_site_user_id INTEGER;
 BEGIN
     SELECT su.site_user_id INTO v_site_user_id
     FROM site_user su
-    JOIN session s ON su.site_user_id = s.site_user_id
-    WHERE s.session_token = p_session_token;
+    WHERE su.username = p_username;
     IF v_site_user_id IS NULL THEN
-        RAISE EXCEPTION 'Invalid session token';
+        RAISE EXCEPTION 'Invalid username: %', p_username;
     END IF;
     INSERT INTO closet (site_user_id, name)
     VALUES (v_site_user_id, p_closet_name);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION api.site_user_remove_closet (p_username TEXT, p_closet_name TEXT) RETURNS VOID AS $$
+DECLARE
+    v_site_user_id INTEGER;
+    v_closet_id INTEGER;
+BEGIN
+    SELECT su.site_user_id INTO v_site_user_id
+    FROM site_user su
+    WHERE su.username = p_username;
+    IF v_site_user_id IS NULL THEN
+        RAISE EXCEPTION 'Invalid username: %', p_username;
+    END IF;
+    SELECT c.closet_id INTO v_closet_id
+    FROM closet c
+    WHERE c.site_user_id = v_site_user_id
+        AND c.name = p_closet_name;
+    IF v_closet_id IS NULL THEN
+        RAISE EXCEPTION 'Closet "%" not found for user "%"', p_closet_name, p_username;
+    END IF;
+    DELETE FROM closet
+    WHERE closet_id = v_closet_id;
 END;
 $$ LANGUAGE plpgsql;
 

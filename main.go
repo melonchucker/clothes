@@ -15,9 +15,9 @@ func BuildWebApps(entrypoints ...string) {
 	result := api.Build(api.BuildOptions{
 		EntryPoints:       entrypoints,
 		Bundle:            true,
-		MinifyWhitespace:  true,
-		MinifyIdentifiers: true,
-		MinifySyntax:      true,
+		MinifyWhitespace:  false,
+		MinifyIdentifiers: false,
+		MinifySyntax:      false,
 		Engines: []api.Engine{
 			{Name: api.EngineChrome, Version: "60"},
 			{Name: api.EngineFirefox, Version: "60"},
@@ -25,8 +25,10 @@ func BuildWebApps(entrypoints ...string) {
 			{Name: api.EngineEdge, Version: "79"},
 		},
 		Write:    true,
-		Tsconfig: "./webcomponents/tsconfig.json",
-		Outfile:  "static/apps/bundle.js",
+		Tsconfig: "./views/react/tsconfig.json",
+		Outfile:  "static/apps/app.js",
+		// Tsconfig: "./webcomponents/tsconfig.json",
+		// Outfile:  "static/apps/bundle.js",
 	})
 
 	if len(result.Errors) > 0 {
@@ -41,7 +43,8 @@ func main() {
 	databaseMigrate := flag.Bool("migrate", false, "Run database migrations")
 	flag.Parse()
 
-	BuildWebApps("webcomponents/src/_bundle.ts")
+	// BuildWebApps("webcomponents/src/_bundle.ts")
+	BuildWebApps("./views/react/index.tsx")
 
 	if *databaseMigrate {
 		models.Migrate()

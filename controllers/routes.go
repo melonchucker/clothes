@@ -35,7 +35,48 @@ func GetAuthenticatedServerMux() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		views.RenderPage("account", w, NewPageData(w, r, "Account", nil))
+		dummy := NewPageData(w, r, "Account", nil)
+		closets, err := models.ApiQuery[[]models.SiteUserCloset](r.Context(), "site_user_get_closets", dummy.SiteUser.Username)
+		if err != nil {
+			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			return
+		}
+
+		views.RenderPage("account", w, NewPageData(w, r, "Account", closets))
+	})
+
+	mux.HandleFunc("GET /profile", func(w http.ResponseWriter, r *http.Request) {
+		siteUser, err := getSession(w, r)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		views.RenderPage("account-profile", w, NewPageData(w, r, "Edit Profile", siteUser))
+	})
+
+	mux.HandleFunc("POST /closets/new", func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		closetName := r.FormValue("closet_name")
+		siteUser, err := getSession(w, r)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		_, err = models.ApiQuery[any](r.Context(), "site_user_add_closet", siteUser.Username, closetName)
+		if err != nil {
+			slog.Error("Error creating new closet", "error", err)
+			setAlert(w, widgets.AlertLevelDanger, "Error creating new closet")
+			http.Redirect(w, r, "/account", http.StatusSeeOther)
+			return
+		}
+
+		setAlert(w, widgets.AlertLevelSuccess, fmt.Sprintf("Closet '%s' created successfully", closetName))
+		http.Redirect(w, r, "/account", http.StatusSeeOther)
 	})
 
 	return authenticateMiddleware(mux)

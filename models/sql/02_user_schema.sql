@@ -25,7 +25,7 @@ CREATE TABLE session (
 
 CREATE TABLE closet (
     closet_id SERIAL PRIMARY KEY,
-    site_user_id INTEGER UNIQUE REFERENCES site_user (site_user_id) ON DELETE CASCADE,
+    site_user_id INTEGER REFERENCES site_user (site_user_id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),

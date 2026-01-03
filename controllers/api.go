@@ -33,6 +33,58 @@ func GetApiMux() http.Handler {
 		w.Write(data)
 	})
 
+	mux.HandleFunc("POST /user/closets", func(w http.ResponseWriter, r *http.Request) {
+		var info struct {
+			ClosetName string `json:"closet_name"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&info); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		siteUser, err := getSession(w, r)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		_, err = models.ApiQuery[string](r.Context(), "site_user_add_closet", siteUser.Username, info.ClosetName)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Error creating closet", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("DELETE /user/closets", func(w http.ResponseWriter, r *http.Request) {
+		var info struct {
+			ClosetName string `json:"closet_name"`
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&info); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		siteUser, err := getSession(w, r)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		_, err = models.ApiQuery[string](r.Context(), "site_user_remove_closet", siteUser.Username, info.ClosetName)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Error deleting closet", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("POST /user/closets/add_item", func(w http.ResponseWriter, r *http.Request) {
 		var info struct {
 			ClosetName string `json:"closet_name"`

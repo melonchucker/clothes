@@ -1,0 +1,15 @@
+{{ define "content" }}
+<form class="mx-auto" method="POST" action="/account/profile">
+    <!-- first name -->
+    <div class="mb-3">
+        <label for="firstName" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="firstName" value="{{ .Data.FirstName }}">
+    </div>
+    <!-- last name -->
+    <div class="mb-3">
+        <label for="lastName" class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="lastName" value="{{ .Data.LastName }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Save changes</button>
+</form>
+{{ end }}
